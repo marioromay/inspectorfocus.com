@@ -25,7 +25,7 @@ function canvasFor(blob){const calls=[];const context={fillRect(...args){calls.p
 test('JPEG encoding uses white background and selected quality, then releases canvas pixels',async()=>{
   const blob=new Blob(['jpeg'],{type:'image/jpeg'}),mock=canvasFor(blob),image={};
   assert.equal(await encodeJpeg(image,{width:2400,height:1600},85,()=>mock.canvas),blob);
-  assert.equal(mock.context.fillStyle,'#fff');assert.equal(mock.context.imageSmoothingQuality,'high');
+  assert.equal(mock.context.fillStyle,'#ffffff');assert.equal(mock.context.imageSmoothingQuality,'high');
   assert.deepEqual(mock.calls[1],['fill',0,0,2400,1600]);assert.deepEqual(mock.calls[2],['draw',image,0,0,2400,1600]);
   assert.deepEqual(mock.calls[3],['image/jpeg',.85]);assert.equal(mock.canvas.width,0);assert.equal(mock.canvas.height,0);
 });

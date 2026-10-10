@@ -21,3 +21,6 @@ test('Stop during a read excludes unfinished photograph and re-enables controls'
 test('Oversized collection is rejected before any file read',async()=>{
   $('files').files=Array(2001).fill(file());await $('files').onchange();assert.match($('message').textContent,/up to 2,000/);assert.equal($('count').textContent,'0');
 });
+test('sample charts are labeled and cannot be mistaken for an exported collection',()=>{
+ $('sample').onclick();assert.equal($('count').textContent,'120');assert.match($('collection-label').textContent,/Sample/);assert.match($('message').textContent,/illustrative values/);assert.equal($('export').disabled,true);assert.equal($('stats-insights').children.length,4);assert.equal($('charts').children.length,9);$('clear').onclick();assert.equal($('results').hidden,true);
+});

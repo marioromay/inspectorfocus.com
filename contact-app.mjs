@@ -1,6 +1,8 @@
-import {drawContactPage} from './contact-renderer.mjs';
-import {layoutSheet,fitImage,sortPhotos,makePDF} from './contact-engine.mjs';
+import {loadPhotograph} from './image-loader.mjs?v=306513868313';
+import {drawContactPage} from './contact-renderer.mjs?v=10be34efccf9';
+import {layoutSheet,fitImage,sortPhotos,makePDF} from './contact-engine.mjs?v=c19cef89cb37';
 const $=id=>document.getElementById(id),controls=['paper','orientation','columns','order','labels'];
+let decoder=null;
 let photos=[],page=0,epoch=0,previewEpoch=0,busy=false,pdfURL=null;
 const settings=()=>({paper:$('paper').value,orientation:$('orientation').value,columns:Number($('columns').value),labels:$('labels').checked});
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
@@ -20,9 +22,7 @@ async function ingest(files){
  for(let i=0;i<list.length;i++){
   if(token!==epoch)return;const file=list[i];message(`Reading ${i+1} of ${list.length} photographs…`);globalThis.processingProgress?.update(task,`Reading ${i+1} of ${list.length} photographs…`,i,list.length);let sourceURL=null,canvas=null;
   try{
-   if(photos.length>=300||file.size>50*1024*1024||(!['image/jpeg','image/png','image/webp'].includes(file.type)&&! /\.(jpe?g|png|webp)$/i.test(file.name)))throw Error('Unsupported file.');
-   sourceURL=URL.createObjectURL(file);const image=await loadImage(sourceURL);if(token!==epoch)return;
-   if(image.naturalWidth*image.naturalHeight>60_000_000)throw Error('Image exceeds 60 MP.');
+   if(photos.length>=300)throw Error('Maximum 300 photographs.');decoder=new AbortController();const loaded=await loadPhotograph(file,{signal:decoder.signal});sourceURL=loaded.url;const image=loaded.image;if(token!==epoch)return;
    const fit=fitImage(image.naturalWidth,image.naturalHeight,960,960);canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(fit.width));canvas.height=Math.max(1,Math.round(fit.height));const ctx=canvas.getContext('2d',{alpha:false});ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(image,0,0,canvas.width,canvas.height);image.src='';
    const blob=await canvasBlob(canvas);if(token!==epoch)return;photos.push({name:file.name,index:photos.length,width:canvas.width,height:canvas.height,url:URL.createObjectURL(blob)});added++;
   }catch{skipped++;}finally{if(sourceURL)URL.revokeObjectURL(sourceURL);if(canvas)canvas.width=canvas.height=1;}
@@ -39,7 +39,7 @@ async function generate(){
  }const pdf=makePDF(pages,layout.width,layout.height);if(token!==epoch)return;pdfURL=URL.createObjectURL(pdf);$('download').href=pdfURL;$('download').download='inspector-focus-contact-sheet.pdf';$('download').hidden=false;message(`${total} ${total===1?'page':'pages'} ready · ${(pdf.size/1024/1024).toFixed(1)} MB. Download your contact sheet.`);
  }catch(error){if(token===epoch)message(`PDF could not be created. ${error.message}`,true);}finally{globalThis.processingProgress?.finish(task);canvas.width=canvas.height=1;if(token===epoch){$('progress').hidden=true;lock(false);}}
 }
-function clear(){globalThis.processingProgress?.reset();epoch++;previewEpoch++;invalidate();for(const photo of photos)URL.revokeObjectURL(photo.url);photos=[];page=0;$('files').value='';$('progress').hidden=true;lock(false);void preview();message('Choose photographs to create your contact sheet.');}
+function clear(){decoder?.abort();globalThis.processingProgress?.reset();epoch++;previewEpoch++;invalidate();for(const photo of photos)URL.revokeObjectURL(photo.url);photos=[];page=0;$('files').value='';$('progress').hidden=true;lock(false);void preview();message('Choose photographs to create your contact sheet.');}
 $('choose').onclick=$('add').onclick=()=>$('files').click();$('files').onchange=()=>ingest($('files').files);$('clear').onclick=clear;$('generate').onclick=()=>generate();
 for(const id of controls)$(id).onchange=()=>{invalidate();page=0;void preview();message('Page settings changed. Generate a new PDF when ready.');};
 $('previous').onclick=()=>{if(page>0){page--;void preview();}};$('next').onclick=()=>{if(page<Math.ceil(photos.length/layoutSheet(settings()).capacity)-1){page++;void preview();}};

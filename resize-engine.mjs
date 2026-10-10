@@ -10,25 +10,38 @@ export function imageFormat(bytes) {
   if(bytes[0]===255&&bytes[1]===216)return 'JPEG';
   if([137,80,78,71,13,10,26,10].every((n,i)=>bytes[i]===n))return 'PNG';
   if(new TextDecoder().decode(bytes.slice(0,4))==='RIFF'&&new TextDecoder().decode(bytes.slice(8,12))==='WEBP')return 'WebP';
-  throw new Error('Choose a JPEG, PNG or WebP photograph.');
+  if(new TextDecoder().decode(bytes.slice(4,8))==='ftyp'){
+    const brands=new TextDecoder().decode(bytes.slice(8));
+    if(/avif|avis/.test(brands))return 'AVIF';
+    if(/heic|heix|hevc|hevx|mif1|msf1/.test(brands))return 'HEIC';
+  }
+  throw new Error('Choose a JPEG, PNG, WebP, HEIC/HEIF or AVIF photograph.');
 }
-export function exportFilename(name,width,height) {
+export function exportFilename(name,width,height,format='jpeg') {
   const stem=String(name).replace(/\.[^.]*$/,'').replace(/[\x00-\x1f<>:"/\\|?*]/g,'_').slice(0,120)||'photograph';
-  return `${stem}-${width}x${height}.jpg`;
+  return `${stem}-${width}x${height}.${format==='jpeg'?'jpg':format}`;
 }
-export async function encodeJpeg(image,dimensions,quality,makeCanvas=()=>document.createElement('canvas'),crop=null) {
-  if(!Number.isInteger(quality)||quality<50||quality>100)throw new Error('Choose JPEG quality from 50 to 100.');
+export function outputDimensions(width,height,longEdge,original=false){
+ if(!original)return resizeDimensions(width,height,longEdge);
+ if(![width,height].every(n=>Number.isSafeInteger(n)&&n>0)||width*height>60_000_000)throw Error('Original-size export supports up to 60 MP.');
+ return {width,height,reduced:false};
+}
+export function encodeJpeg(image,dimensions,quality,makeCanvas=()=>document.createElement('canvas'),crop=null){return encodeImage(image,dimensions,quality,makeCanvas,crop);}
+export async function encodeImage(image,dimensions,quality,makeCanvas=()=>document.createElement('canvas'),crop=null,format='jpeg',background='#ffffff') {
+  if(!['jpeg','png','webp'].includes(format))throw Error('Choose JPEG, PNG or WebP output.');
+  if(!/^#[0-9a-f]{6}$/i.test(background))throw Error('Choose a valid background color.');
+  if(format!=='png'&&(!Number.isInteger(quality)||quality<50||quality>100))throw new Error('Choose JPEG quality from 50 to 100.');
   const canvas=makeCanvas();canvas.width=dimensions.width;canvas.height=dimensions.height;
   try {
-    const context=canvas.getContext('2d',{alpha:false,colorSpace:'srgb'});
+    const context=canvas.getContext('2d',{alpha:format!=='jpeg',colorSpace:'srgb'});
     if(!context)throw new Error('The browser could not create the image. Try a smaller size.');
-    context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
+    if(format==='jpeg'){context.fillStyle=background;context.fillRect(0,0,canvas.width,canvas.height);}
     context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
     if(crop)context.drawImage(image,crop.x,crop.y,crop.width,crop.height,0,0,canvas.width,canvas.height);
     else context.drawImage(image,0,0,canvas.width,canvas.height);
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality/100));
+    const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/'+format,format==='png'?undefined:quality/100));
     if(!blob||!blob.size)throw new Error('The browser could not export this image. Try a smaller size.');
-    if(blob.type!=='image/jpeg')throw new Error('JPEG export is unavailable in this browser.');
+    if(blob.type!=='image/'+format)throw new Error(format.toUpperCase()+' export is unavailable in this browser.');
     return blob;
   } finally {canvas.width=0;canvas.height=0;}
 }

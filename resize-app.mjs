@@ -1,5 +1,5 @@
-import {setCurrentFile,connectWorkspace} from './workspace.mjs';
-import {resizeDimensions,imageFormat,exportFilename,encodeJpeg} from './resize-engine.mjs';
+import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=e166893abe22';
+import {resizeDimensions,imageFormat,exportFilename,encodeJpeg} from './resize-engine.mjs?v=7ca3185288c4';
 const $=id=>document.getElementById(id);
 let source=null,sourceURL=null,outputURL=null,generation=0,busy=false;
 const say=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};

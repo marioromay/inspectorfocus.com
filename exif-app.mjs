@@ -1,6 +1,6 @@
-import {inspectCleanup,resetCleanup} from './exif-cleanup.mjs';
-import {setCurrentFile,connectWorkspace} from './workspace.mjs';
-import { inspectJPEG, coordinates } from './exif-reader.mjs';
+import {inspectCleanup,resetCleanup} from './exif-cleanup.mjs?v=c69453800cf8';
+import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=e166893abe22';
+import { inspectJPEG, coordinates } from './exif-reader.mjs?v=3ef6ec3e9ae7';
 const $ = id => document.getElementById(id);
 let imageURL = null, summary = '', generation = 0;
 const original = Object.fromEntries(['camera','lens','state','focal','aperture','shutter','iso','dimensions','resolution','size','capture','privacy','privacy-note'].map(id=>[id,$(id).textContent]));

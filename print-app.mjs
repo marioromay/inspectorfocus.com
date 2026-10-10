@@ -1,5 +1,7 @@
-import {setCurrentFile,connectWorkspace} from './workspace.mjs';
-import {printSizes,printFit,resolutionGuide,sizeLabel} from './print-engine.mjs';
+import {loadPhotograph} from './image-loader.mjs?v=306513868313';
+import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=e166893abe22';
+import {printSizes,printFit,resolutionGuide,sizeLabel} from './print-engine.mjs?v=f078fe485b31';
+let decoder=null;
 const $=id=>document.getElementById(id);let image=null,url=null,selected='8x10',generation=0;
 const say=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 function currentFit(){return printFit(image.width,image.height,printSizes.find(s=>s.id===selected),$('orientation').value,+$('position').value/100);}
@@ -11,29 +13,26 @@ function render(){
   for(const size of printSizes){
     const button=document.createElement('button');button.className='size-choice'+(size.id===selected?' selected':'');button.disabled=!image;button.setAttribute('aria-pressed',String(size.id===selected));
     const f=image?printFit(image.width,image.height,size,$('orientation').value):null,guide=f?resolutionGuide(f.ppi):null;
+    const shapeBox=document.createElement('span'),shape=document.createElement('span');shapeBox.className='print-shape-box';shape.className='print-shape'+(guide?' '+guide.tone:'');shapeBox.setAttribute('aria-hidden','true');
+    const landscape=$('orientation').value==='landscape'||$('orientation').value==='auto'&&image&&image.width>=image.height;
+    shape.style.width=((landscape?size.long:size.short)/36*64)+'px';shape.style.height=((landscape?size.short:size.long)/36*64)+'px';shapeBox.append(shape);button.append(shapeBox);
     for(const [text,cls]of [[sizeLabel(size,$('units').value),'size-name'],[f?Math.floor(f.ppi)+' PPI':'—','size-ppi'],[f?f.cropRequired?'Crop required · '+lostText(f)+' removed':'No crop required':'Select a photograph','size-crop'],[guide?guide.label:'Resolution pending','size-guide'+(guide?' '+guide.tone:'')]]){const span=document.createElement('span');span.textContent=text;span.className=cls;button.append(span);}
     button.onclick=()=>{selected=size.id;$('position').value=50;render();};container.append(button);
   }
-  if(!image)return;
+  if(!image){$('print-retention').hidden=true;return;}
   const f=currentFit(),guide=resolutionGuide(f.ppi),x=pct(f.x,image.width),y=pct(f.y,image.height),w=pct(f.cropWidth,image.width),h=pct(f.cropHeight,image.height);
   box('crop-outline',x,y,w,h);box('mask-top',0,0,100,y);box('mask-bottom',0,y+h,100,100-y-h);box('mask-left',0,y,x,h);box('mask-right',x+w,y,100-x-w,h);
   $('selected-size').textContent=sizeLabel(printSizes.find(s=>s.id===selected),$('units').value);$('selected-ppi').textContent=Math.floor(f.ppi)+' PPI';$('selected-guide').textContent=guide.label;
+  $('print-retention-fill').style.width=((1-f.lost)*100)+'%';$('print-retention').hidden=false;$('print-retention-label').textContent=((1-f.lost)*100).toFixed(1)+'% of original image area retained';
   $('crop-description').textContent=f.cropRequired?lostText(f)+' of the image area falls outside this print. Approx. '+Math.floor(f.cropWidth).toLocaleString()+' × '+Math.floor(f.cropHeight).toLocaleString()+' pixels retained.':'The photograph fits this print ratio without cropping.';
   $('position-control').hidden=!f.axis;$('position-label').textContent='Crop position · '+(f.axis||'');$('start-label').textContent=f.axis==='vertical'?'Top':'Left';$('end-label').textContent=f.axis==='vertical'?'Bottom':'Right';
 }
-function clear(){globalThis.processingProgress?.reset();setCurrentFile(null);generation++;if(url)URL.revokeObjectURL(url);url=null;image=null;$('photo').removeAttribute('src');$('file').value='';$('image-view').hidden=true;$('empty').hidden=false;$('position').value=50;render();say('Choose a photograph to calculate print resolution.');}
+function clear(){decoder?.abort();globalThis.processingProgress?.reset();setCurrentFile(null);generation++;if(url)URL.revokeObjectURL(url);url=null;image=null;$('photo').removeAttribute('src');$('file').value='';$('image-view').hidden=true;$('empty').hidden=false;$('position').value=50;render();say('Choose a photograph to calculate print resolution.');}
 async function load(file){
   const run=++generation;let pendingURL=null;const task=globalThis.processingProgress?.start({title:'Checking print sizes',detail:'Reading photograph dimensions…',cancel:clear});
   try{
     await globalThis.processingProgress?.paint();if(file.size>50*1024*1024)throw new Error('Choose an image up to 50 MB.');
-    // Verify format signatures, rather than relying on an extension or MIME label.
-    const bytes=new Uint8Array(await file.slice(0,12).arrayBuffer());if(run!==generation)return;
-    const jpeg=bytes[0]===255&&bytes[1]===216,png=[137,80,78,71,13,10,26,10].every((n,i)=>bytes[i]===n),webp=new TextDecoder().decode(bytes.slice(0,4))==='RIFF'&&new TextDecoder().decode(bytes.slice(8,12))==='WEBP';
-    if(!jpeg&&!png&&!webp)throw new Error('Choose a JPEG, PNG or WebP photograph.');
-    say('Reading image locally…');pendingURL=URL.createObjectURL(file);const preview=new Image();preview.src=pendingURL;await preview.decode();
-    if(run!==generation){URL.revokeObjectURL(pendingURL);return;}
-    if(!preview.naturalWidth||!preview.naturalHeight)throw new Error('The browser could not read image dimensions.');
-    if(preview.naturalWidth*preview.naturalHeight>60_000_000)throw new Error('Choose an image up to 60 megapixels for this version.');
+    decoder?.abort();decoder=new AbortController();const loaded=await loadPhotograph(file,{signal:decoder.signal});pendingURL=loaded.url;const preview=loaded.image;if(run!==generation){URL.revokeObjectURL(pendingURL);return;}
     if(url)URL.revokeObjectURL(url);url=pendingURL;pendingURL=null;image={width:preview.naturalWidth,height:preview.naturalHeight};
     $('photo').src=url;$('stage').style.width='min(100%, '+Math.min(650,560*image.width/image.height)+'px)';$('filename').textContent=file.name;
     $('image-facts').textContent=image.width.toLocaleString()+' × '+image.height.toLocaleString()+' pixels · '+(image.width*image.height/1e6).toFixed(2)+' MP · '+(file.size/1024/1024).toFixed(2)+' MB';

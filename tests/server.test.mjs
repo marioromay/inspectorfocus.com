@@ -5,9 +5,9 @@ test('production serves all tools, comic and processing assets and excludes priv
  const server=makeServer();await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const base='http://127.0.0.1:'+server.address().port;
  try{
-  for(const [path,text]of [['/','EXIF Data'],['/exif/','Shooting details'],['/photo-stats/','Photo Stats'],['/print-size/','Print Size'],['/export/','Crop / Export'],['/contact-sheet/','Contact Sheet'],['/about/','comic']]){const r=await fetch(base+path);assert.equal(r.status,200,path);assert.ok((await r.text()).includes(text),path);}
+  for(const [path,text]of [['/','EXIF Data'],['/exif/','Shooting details'],['/photo-stats/','Photo Stats'],['/print-size/','Print Size'],['/export/','Crop / Convert / Export'],['/contact-sheet/','Contact Sheet'],['/about/','comic']]){const r=await fetch(base+path);assert.equal(r.status,200,path);assert.ok((await r.text()).includes(text),path);}
   for(const path of ['/resize/','/crop/','/batch/','/batch-resize/','/privacy/','/remove-metadata/'])assert.equal((await fetch(base+path)).status,200,path);
-  for(const path of ['/exif-app.mjs','/export-app.mjs','/exif-cleanup.mjs','/privacy-engine.mjs','/processing.js','/contact-renderer.mjs','/toolset.css','/brand/inspector-focus.png','/brand/inspector-focus-comic.png'])assert.equal((await fetch(base+path)).status,200,path);
+  for(const path of ['/exif-app.mjs','/export-app.mjs','/exif-cleanup.mjs','/privacy-engine.mjs','/processing.js','/contact-renderer.mjs','/toolset.css','/editorial.css','/stats-visuals.mjs','/image-loader.mjs','/heic-worker.js','/vendor/heic-worker.js','/vendor/heic-to-license.txt','/brand/inspector-focus.png','/brand/inspector-focus-comic.png'])assert.equal((await fetch(base+path)).status,200,path);
   for(const path of ['/app.mjs','/package.json','/README.md','/docs/project-overview.md','/tests/server.test.mjs','/.git/config','/%2e%2e/package.json'])assert.equal((await fetch(base+path)).status,404,path);
   assert.match((await fetch(base+'/exif-app.mjs')).headers.get('content-type'),/javascript/);
   assert.equal((await fetch(base+'/exif/',{method:'POST',body:'no uploads'})).status,405);

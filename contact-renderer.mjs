@@ -1,4 +1,4 @@
-import {fitImage} from './contact-engine.mjs';
+import {fitImage} from './contact-engine.mjs?v=c19cef89cb37';
 const logos=new WeakMap();
 function shortLabel(ctx,text,width){text=text.replace(/[\x00-\x1f\x7f]/g,' ');if(ctx.measureText(text).width<=width)return text;let end=text.length;while(end>0&&ctx.measureText(text.slice(0,end)+'…').width>width)end--;return text.slice(0,end)+'…';}
 export async function drawContactPage(target,ordered,index,layout,active,loadImage){

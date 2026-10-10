@@ -1,4 +1,4 @@
-import {inspectJPEG} from './exif-reader.mjs';
+import {inspectJPEG} from './exif-reader.mjs?v=3ef6ec3e9ae7';
 const text=bytes=>new TextDecoder('latin1').decode(bytes);
 const starts=(bytes,s)=>s.split('').every((c,i)=>bytes[i]===c.charCodeAt(0));
 export function jpegSegments(buffer){

@@ -93,8 +93,16 @@ const routes=new Map([
   "favicon.svg"
  ],
  [
+  "/heic-worker.js",
+  "heic-worker.js"
+ ],
+ [
   "/home.css",
   "home.css"
+ ],
+ [
+  "/image-loader.mjs",
+  "image-loader.mjs"
  ],
  [
   "/index.html",
@@ -165,6 +173,10 @@ const routes=new Map([
   "stats-engine.mjs"
  ],
  [
+  "/stats-visuals.mjs",
+  "stats-visuals.mjs"
+ ],
+ [
   "/stats.css",
   "stats.css"
  ],
@@ -179,6 +191,14 @@ const routes=new Map([
  [
   "/toolset.css",
   "toolset.css"
+ ],
+ [
+  "/vendor/heic-to-license.txt",
+  "vendor/heic-to-license.txt"
+ ],
+ [
+  "/vendor/heic-worker.js",
+  "vendor/heic-worker.js"
  ],
  [
   "/workspace.mjs",
@@ -242,7 +262,7 @@ const routes=new Map([
  ]
 ]);
 const directoryRoutes=new Set(["/about", "/batch", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
-const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png'};
+const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png',txt:'text/plain; charset=utf-8'};
 export function makeServer(){return createServer(async(req,res)=>{
  res.setHeader('X-Content-Type-Options','nosniff');
  if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405,{'Allow':'GET, HEAD'});res.end('Method not allowed');return;}
