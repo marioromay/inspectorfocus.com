@@ -13,6 +13,10 @@ const routes=new Map([
   "batch-app.mjs"
  ],
  [
+  "/batch-rename/index.html",
+  "batch-rename/index.html"
+ ],
+ [
   "/batch-resize/index.html",
   "batch-resize/index.html"
  ],
@@ -97,6 +101,10 @@ const routes=new Map([
   "heic-worker.js"
  ],
  [
+  "/helvetica.mjs",
+  "helvetica.mjs"
+ ],
+ [
   "/home.css",
   "home.css"
  ],
@@ -107,6 +115,10 @@ const routes=new Map([
  [
   "/index.html",
   "index.html"
+ ],
+ [
+  "/photo-order.mjs",
+  "photo-order.mjs"
  ],
  [
   "/photo-stats/index.html",
@@ -147,6 +159,14 @@ const routes=new Map([
  [
   "/remove-metadata/index.html",
   "remove-metadata/index.html"
+ ],
+ [
+  "/rename-app.mjs",
+  "rename-app.mjs"
+ ],
+ [
+  "/rename-engine.mjs",
+  "rename-engine.mjs"
  ],
  [
   "/resize-app.mjs",
@@ -225,6 +245,10 @@ const routes=new Map([
   "batch/index.html"
  ],
  [
+  "/batch-rename/",
+  "batch-rename/index.html"
+ ],
+ [
   "/batch-resize/",
   "batch-resize/index.html"
  ],
@@ -265,7 +289,7 @@ const routes=new Map([
   "resize/index.html"
  ]
 ]);
-const directoryRoutes=new Set(["/about", "/batch", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
+const directoryRoutes=new Set(["/about", "/batch", "/batch-rename", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
 const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png',txt:'text/plain; charset=utf-8'};
 export function makeServer(){return createServer(async(req,res)=>{
  res.setHeader('X-Content-Type-Options','nosniff');

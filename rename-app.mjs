@@ -1,0 +1,23 @@
+import {captureDate} from './photo-order.mjs?v=c605cf6d369d';
+import {renamePlan} from './rename-engine.mjs?v=0ff444f2c1f1';
+import {makeZIP} from './zip-engine.mjs?v=24095449ff98';
+const $=id=>document.getElementById(id),controls=['prefix','start','padding','include-date','rename-order'];
+let photos=[],epoch=0,busy=false,downloadURL=null;
+const say=(s,error=false)=>{$('message').textContent=s;$('message').classList.toggle('error',error);};
+const settings=()=>({prefix:$('prefix').value,start:$('start').value.trim()===''?NaN:Number($('start').value),padding:Number($('padding').value),date:$('include-date').checked,order:$('rename-order').value});
+function invalidate(){if(downloadURL)URL.revokeObjectURL(downloadURL);downloadURL=null;$('download').hidden=true;$('download').removeAttribute('href');}
+function lock(value){busy=value;for(const id of controls)$(id).disabled=value;$('choose').disabled=value;$('generate').disabled=value||!photos.length;}
+function preview(){invalidate();$('rename-list').replaceChildren();$('count').textContent=photos.length+' photographs';try{const plan=renamePlan(photos,settings());for(const p of plan){const row=document.createElement('tr');for(const value of [p.name,p.newName]){const cell=document.createElement('td');cell.textContent=value;row.append(cell);}$('rename-list').append(row);}$('generate').disabled=busy||!photos.length;return plan;}catch(error){say(error.message,true);$('generate').disabled=true;return null;}}
+async function ingest(files){if(busy)return;const list=Array.from(files);if(list.length>300||list.reduce((n,f)=>n+f.size,0)>500*1024*1024){say('Choose up to 300 photographs totaling 500 MB or less.',true);return;}
+ const token=++epoch;photos=[];invalidate();lock(true);const task=globalThis.processingProgress?.start({title:'Preparing batch rename',detail:'Reading recorded dates…',total:list.length,cancel:clear});let skipped=0;
+ try{await globalThis.processingProgress?.paint();for(const [index,file] of list.entries()){if(token!==epoch)return;if(!/\.(jpe?g|png|webp|heic|heif|avif|tiff?|dng|arw)$/i.test(file.name)){skipped++;continue;}const capture=await captureDate(file);if(token!==epoch)return;photos.push({file,name:file.name,index,capture});globalThis.processingProgress?.update(task,'Reading '+(index+1)+' of '+list.length,index+1,list.length);await new Promise(r=>setTimeout(r,0));}
+ if(token!==epoch)return;lock(false);preview();say('Review the new filenames, then create your ZIP.'+(skipped?' '+skipped+' unsupported files skipped.':'')+(photos.some(p=>!p.capture)?' Files without a recorded JPEG capture date use “undated” when dates are enabled.':''));
+ }catch(error){if(token===epoch){lock(false);say(error.message,true);}}finally{globalThis.processingProgress?.finish(task);$('files').value='';}}
+async function generate(){if(busy||!photos.length)return;const plan=preview();if(!plan)return;const token=++epoch;lock(true);const entries=[],task=globalThis.processingProgress?.start({title:'Creating renamed ZIP',detail:'Copying originals…',total:plan.length,cancel:clear});
+ try{await globalThis.processingProgress?.paint();for(const [i,p] of plan.entries()){const bytes=new Uint8Array(await p.file.arrayBuffer());if(token!==epoch)return;entries.push({name:p.newName,bytes});globalThis.processingProgress?.update(task,'Copying '+(i+1)+' of '+plan.length,i+1,plan.length);await new Promise(r=>setTimeout(r,0));}const zip=makeZIP(entries);if(token!==epoch)return;downloadURL=URL.createObjectURL(zip);$('download').href=downloadURL;$('download').download='inspector-focus-renamed.zip';$('download').hidden=false;say(plan.length+' renamed originals ready. Image contents and metadata are preserved.');
+ }catch(error){if(token===epoch)say('ZIP could not be created. '+error.message,true);}finally{globalThis.processingProgress?.finish(task);if(token===epoch)lock(false);}}
+function clear(){epoch++;globalThis.processingProgress?.reset();photos=[];invalidate();lock(false);preview();$('files').value='';say('Choose photographs to preview their new filenames.');}
+$('choose').onclick=()=>$('files').click();$('files').onchange=()=>ingest($('files').files);$('clear').onclick=clear;$('generate').onclick=generate;
+for(const id of controls)$(id).oninput=()=>{if(busy)return;const plan=preview();if(plan)say('Names updated. Review before creating your ZIP.');};
+$('rename-drop').ondragover=e=>e.preventDefault();$('rename-drop').ondrop=e=>{e.preventDefault();void ingest(e.dataTransfer.files);};
+window.addEventListener('beforeunload',()=>{if(downloadURL)URL.revokeObjectURL(downloadURL);});
