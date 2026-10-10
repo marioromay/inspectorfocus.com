@@ -13,9 +13,12 @@ Run checks with `node --test tests/*.test.mjs`. Changes to parsing should preser
 
 `/resize/` processes one JPEG, PNG or WebP locally, up to 50 MB / 60 MP. Long-edge sizing (100–6,000 px) retains aspect ratio and never upscales. JPEG quality is adjustable from 50 to 100. Defaults are 2,400 px and quality 85. Canvas output is limited to 24 MP, uses a white background, and does not copy original metadata or embedded profiles. The result preview and exact encoded size appear before downloading. Changes invalidate the previous output; Clear and replacement cancel stale work. Browser encoding and color conversion may vary; this is intended for everyday web copies. Batch, metadata retention and print-critical color handling are deferred.
 
+## Contact Sheet
 
-## Production hosting
+`/contact-sheet/` creates contact-sheet PDFs locally from up to 300 JPEG, PNG or WebP photographs (50 MB / 60 MP per file). Letter/A4, portrait/landscape, 2–6 columns, optional filename labels, filename or added order, multi-page preview and download. Complete photographs retain their aspect ratio. Reduced JPEG thumbnails (960 px maximum edge) are retained as local blob URLs; full-size decoded sources are released after processing. PDFs contain raster page artwork at 144 pixels per inch, including labels (not searchable text), and do not copy source EXIF/GPS. Originals stay unchanged. Clear cancels pending work and releases thumbnails/downloads.
 
-Serve the repository root in Hostinger PHP/HTML hosting using GitHub deployment into public_html. No build is needed. The included .htaccess sets JavaScript MIME for .mjs. Tool pages have their own directories. For optional Node hosting, npm start serves the same pages from app.mjs on PORT or 3000. Browser EXIF logic is exif-app.mjs.
+Validation: contact-engine layout and PDF byte-offset tests; mocked browser batch/invalid-file/download invalidation and Clear cancellation tests; sample PDF inspected and rendered with Poppler. Interactive browser QA was unavailable in this environment.
 
-The shared presentation uses Helvetica Neue / Helvetica / Arial, monochrome themes, red accents, the approved robot, numbered navigation and a privacy strip. The sun/moon button defaults to the system theme and stores only a visual preference locally.
+## Connected single-image tools and homepage
+
+The homepage is a compact five-tool directory. EXIF, Print Size and Resize carry the original file across same-tab tool navigation using an explicit IndexedDB handoff and a sessionStorage ticket. The destination consumes and deletes the record; records expire logically after two minutes and abandoned expired records are removed on the next workspace/home visit. No source files are retained during ordinary inspection. EXIF handoff accepts JPEG only. Clear removes the active file. Crop previews and output settings do not transfer. When browser storage is unavailable, navigation reports the failure and leaves the current image intact. The mobile header retains horizontal scrolling; medium layouts use a separate navigation row. The wordmark is plain monochrome; red is reserved for interface accents.

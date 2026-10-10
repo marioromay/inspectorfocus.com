@@ -1,3 +1,4 @@
+import {setCurrentFile,connectWorkspace} from './workspace.mjs';
 import {resizeDimensions,imageFormat,exportFilename,encodeJpeg} from './resize-engine.mjs';
 const $=id=>document.getElementById(id);
 let source=null,sourceURL=null,outputURL=null,generation=0,busy=false;
@@ -25,7 +26,7 @@ function update(){
 }
 function changed(){generation++;busy=false;releaseOutput();update();say('Settings changed. Create a new JPEG to download these settings.');}
 function clear(){
-  generation++;busy=false;releaseOutput();if(sourceURL)URL.revokeObjectURL(sourceURL);
+  setCurrentFile(null);generation++;busy=false;releaseOutput();if(sourceURL)URL.revokeObjectURL(sourceURL);
   source=null;sourceURL=null;$('photo').removeAttribute('src');$('file').value='';
   $('image-view').hidden=true;$('empty').hidden=false;$('preset').value='2400';$('long-edge').value='2400';$('quality').value='85';
   $('size-note').textContent='Select a photograph to see the output dimensions.';update();say('Choose a photograph to resize and export.');
@@ -43,7 +44,7 @@ async function load(file){
     if(sourceURL)URL.revokeObjectURL(sourceURL);sourceURL=pendingURL;pendingURL=null;source={image,file};
     $('photo').src=sourceURL;$('filename').textContent=file.name;
     $('source-facts').textContent=format+' · '+image.naturalWidth.toLocaleString()+' × '+image.naturalHeight.toLocaleString()+' pixels · '+size(file.size);
-    $('image-view').hidden=false;$('empty').hidden=true;
+    setCurrentFile(file);$('image-view').hidden=false;$('empty').hidden=true;
     say('Photograph ready. Choose a size and quality, then create your JPEG.');
   }catch(error){if(run===generation)say(error.message||'The browser could not read this image. Try a standard JPEG.',true);}
   finally{if(pendingURL)URL.revokeObjectURL(pendingURL);if(run===generation){busy=false;update();}}
@@ -77,3 +78,5 @@ for(const event of ['dragleave','drop'])$('dropzone').addEventListener(event,e=>
 $('dropzone').addEventListener('drop',e=>{if(e.dataTransfer.files.length!==1){say('Choose one photograph at a time.',true);return;}return load(e.dataTransfer.files[0]);});
 window.addEventListener('pagehide',event=>{if(event.persisted)return;generation++;releaseOutput();if(sourceURL)URL.revokeObjectURL(sourceURL);});
 update();
+
+connectWorkspace(load,()=>generation===0);

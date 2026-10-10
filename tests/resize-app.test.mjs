@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-function element(){return {textContent:'',value:'',hidden:true,disabled:false,src:'',style:{},handlers:{},classList:{toggle(){},add(){},remove(){}},removeAttribute(key){delete this[key];},addEventListener(key,fn){this.handlers[key]=fn;},click(){}};}
+function element(){return {textContent:'',value:'',hidden:true,disabled:false,src:'',style:{},handlers:{},classList:{toggle(){},add(){},remove(){}},removeAttribute(key){delete this[key];},addEventListener(key,fn){this.handlers[key]=fn;},click(){},querySelectorAll(){return [];}};}
 const elements=new Map();let finishEncoding;
 globalThis.document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement(){return {getContext(){return {fillRect(){},drawImage(){}};},toBlob(callback){finishEncoding=callback;}};}};
 globalThis.window={addEventListener(){}};

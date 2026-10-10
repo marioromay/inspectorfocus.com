@@ -1,11 +1,12 @@
+import {setCurrentFile,connectWorkspace} from './workspace.mjs';
 import { inspectJPEG, coordinates } from './exif-reader.mjs';
 const $ = id => document.getElementById(id);
 let imageURL = null, summary = '', generation = 0;
 const original = Object.fromEntries(['camera','lens','state','focal','aperture','shutter','iso','dimensions','resolution','size','capture','privacy','privacy-note'].map(id=>[id,$(id).textContent]));
 function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error);}
-function reset(){generation++;if(imageURL)URL.revokeObjectURL(imageURL);imageURL=null;summary='';$('photo').removeAttribute('src');$('file').value='';$('empty').hidden=false;$('preview').hidden=true;$('filebar').hidden=true;$('location').hidden=true;$('location').open=false;$('copy').disabled=true;for(const [id,text] of Object.entries(original))$(id).textContent=text;message('');}
+function reset(){setCurrentFile(null);generation++;if(imageURL)URL.revokeObjectURL(imageURL);imageURL=null;summary='';$('photo').removeAttribute('src');$('file').value='';$('empty').hidden=false;$('preview').hidden=true;$('filebar').hidden=true;$('location').hidden=true;$('location').open=false;$('copy').disabled=true;for(const [id,text] of Object.entries(original))$(id).textContent=text;message('');}
 $('choose').onclick=$('replace').onclick=()=>$('file').click();$('clear').onclick=reset;
-$('file').onchange=()=>{if($('file').files[0])load($('file').files[0]);};
+$('file').onchange=()=>{const file=$('file').files[0];$('file').value='';if(file)return load(file);};
 const zone=$('dropzone');for(const event of ['dragenter','dragover'])zone.addEventListener(event,e=>{e.preventDefault();$('empty').classList.add('drag');});
 for(const event of ['dragleave','drop'])zone.addEventListener(event,e=>{e.preventDefault();$('empty').classList.remove('drag');});
 zone.addEventListener('drop',e=>{const files=e.dataTransfer.files;if(files.length!==1){message('Choose one photograph at a time.',true);return;}load(files[0]);});
@@ -25,7 +26,7 @@ async function load(file){
     const iso=positive(t.iso)?String(t.iso):missing;
     const rotate=[5,6,7,8].includes(t.orientation), w=rotate?data.height:data.width,h=rotate?data.width:data.height;
     if(imageURL)URL.revokeObjectURL(imageURL);imageURL=URL.createObjectURL(file);$('photo').src=imageURL;
-    $('empty').hidden=true;$('preview').hidden=false;$('filebar').hidden=false;$('filename').textContent=file.name;
+    setCurrentFile(file);$('empty').hidden=true;$('preview').hidden=false;$('filebar').hidden=false;$('filename').textContent=file.name;
     const hasSettings=Boolean(t.make||t.model||t.lens||[t.focal,t.aperture,t.exposure,t.iso].some(positive));
     $('camera').textContent=hasSettings?camera:data.warnings.length?'Shooting details unreadable':'Shooting details unavailable';
     $('lens').textContent=t.lens||(hasSettings?'Lens '+fieldMissing.toLowerCase():data.warnings.length?'EXIF was detected, but some fields could not be read.':'This file has no supported camera or exposure fields.');
@@ -43,3 +44,4 @@ $('photo').onerror=()=>message('Metadata was read, but this browser could not di
 $('copy').onclick=async()=>{try{await navigator.clipboard.writeText(summary);message('Shooting summary copied. Location and capture time are excluded.');}catch{message('Clipboard access is unavailable. Select and copy this summary: '+summary);}};
 window.addEventListener('pagehide',()=>{if(imageURL)URL.revokeObjectURL(imageURL);});
 
+connectWorkspace(load,()=>generation===0);

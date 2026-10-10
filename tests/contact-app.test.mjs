@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+const elements=new Map();const ctx={scale(){},fillRect(){},drawImage(){},fillText(){},beginPath(){},moveTo(){},lineTo(){},stroke(){},measureText(text){return {width:text.length*4};}};
+function element(){return {value:'',checked:true,disabled:false,hidden:true,files:[],classList:{toggle(){},add(){},remove(){}},setAttribute(){},removeAttribute(key){delete this[key];},click(){},getContext(){return ctx;}};}
+let pause=false,pending;
+globalThis.document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement(){return {width:0,height:0,getContext(){return ctx;},toBlob(cb){if(pause)pending=cb;else cb(new Blob([new Uint8Array([255,216,255,217])],{type:'image/jpeg'}));}};}};
+globalThis.window={addEventListener(){}};globalThis.Image=class{naturalWidth=2400;naturalHeight=1600;set src(value){if(value)queueMicrotask(()=>this.onload());}};
+let serial=0;const revoked=[];globalThis.URL={createObjectURL(){return `blob:test-${++serial}`;},revokeObjectURL(url){revoked.push(url);}};
+const $=id=>document.getElementById(id);$('paper').value='letter';$('orientation').value='portrait';$('columns').value='4';$('order').value='filename';
+await import('../contact-app.mjs');
+const photo={name:'frame1.jpg',type:'image/jpeg',size:1000};
+test('batch skips unsupported files, produces a PDF, invalidates download on settings change',async()=>{$('files').files=[photo,{name:'bad.raw',type:'',size:1000}];await $('files').onchange();assert.equal($('count').textContent,'1 photograph');assert.match($('message').textContent,/1 skipped/);await $('generate').onclick();assert.equal($('download').hidden,false);assert.equal($('download').download,'inspector-focus-contact-sheet.pdf');const url=$('download').href;$('labels').checked=false;$('labels').onchange();assert.equal($('download').hidden,true);assert.ok(revoked.includes(url));});
+test('clear while loading prevents old images from reappearing',async()=>{$('clear').onclick();pause=true;$('files').files=[photo];const reading=$('files').onchange();await new Promise(r=>setImmediate(r));assert.ok(pending);$('clear').onclick();pending(new Blob(['jpeg']));await reading;pause=false;assert.equal($('loaded').hidden,true);assert.equal($('generate').disabled,true);assert.equal($('progress').hidden,true);});
+test('clear during PDF encoding prevents stale download',async()=>{$('files').files=[photo];await $('files').onchange();pause=true;const generating=$('generate').onclick();await new Promise(r=>setImmediate(r));$('clear').onclick();pending(new Blob(['jpeg']));await generating;pause=false;assert.equal($('download').hidden,true);assert.equal($('generate').disabled,true);});

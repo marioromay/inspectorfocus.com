@@ -44,7 +44,7 @@ async function analyze(selection){
       await new Promise(resolve=>setTimeout(resolve,0));
     }
   }finally{
-    running=false;$('choose').disabled=false;$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
+    running=false;$('choose').disabled=false;$('choose').textContent='Replace collection';$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
     const incomplete=stats.partial?stats.partial+' file(s) had unreadable EXIF fields. ':'';
     say((stop?'Stopped. Results cover completed files only. ':'Analysis complete. ')+stats.count.toLocaleString()+' read · '+skipped.toLocaleString()+' skipped. '+incomplete+(stats.count&&!stats.withSettings?'No supported shooting settings were found. Orientation still comes from image dimensions. Try camera originals or exports that retain metadata.':'Percentages exclude missing values.'));
   }
@@ -54,7 +54,7 @@ $('cancel').onclick=()=>{stop=true;$('progress-label').textContent='Stopping aft
 for(const event of ['dragenter','dragover'])$('dropzone').addEventListener(event,e=>{e.preventDefault();if(!running)$('dropzone').classList.add('drag');});
 for(const event of ['dragleave','drop'])$('dropzone').addEventListener(event,e=>{e.preventDefault();$('dropzone').classList.remove('drag');});
 $('dropzone').addEventListener('drop',e=>{if(!running)analyze(e.dataTransfer.files);});
-$('clear').onclick=()=>{if(running)return;stats=createStats();issues=[];skipped=0;$('results').hidden=true;say('Collection cleared. Choose photographs to begin.');};
+$('clear').onclick=()=>{if(running)return;stats=createStats();issues=[];skipped=0;$('results').hidden=true;$('choose').textContent='Choose photographs';say('Collection cleared. Choose photographs to begin.');};
 $('export').onclick=()=>{
   if(running||!stats.count)return;
   const url=URL.createObjectURL(new Blob(['\ufeff'+exportCSV(stats)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='inspector-focus-photo-stats.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);

@@ -9,8 +9,9 @@ const routes=new Map([
   ['/exif/','exif/index.html'],['/exif/index.html','exif/index.html'],
   ['/photo-stats/','photo-stats/index.html'],['/photo-stats/index.html','photo-stats/index.html'],
   ['/print-size/','print-size/index.html'],['/print-size/index.html','print-size/index.html'],
+  ['/contact-sheet/','contact-sheet/index.html'],['/contact-sheet/index.html','contact-sheet/index.html'],
   ['/resize/','resize/index.html'],['/resize/index.html','resize/index.html'],
-  ...['resize-app.mjs','resize-engine.mjs','resize.css','theme.js','editorial.css','print-app.mjs','print-engine.mjs','print.css','exif-app.mjs','exif-reader.mjs','stats-app.mjs','stats-engine.mjs','style.css','stats.css','favicon.svg','brand/inspector-focus.png'].map(path=>['/'+path,path])
+  ...['contact-app.mjs','contact-engine.mjs','contact.css','workspace.mjs','home.css','resize-app.mjs','resize-engine.mjs','resize.css','theme.js','editorial.css','print-app.mjs','print-engine.mjs','print.css','exif-app.mjs','exif-reader.mjs','stats-app.mjs','stats-engine.mjs','style.css','stats.css','favicon.svg','brand/inspector-focus.png'].map(path=>['/'+path,path])
 ]);
 const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png'};
 export function makeServer(){return createServer(async(req,res)=>{
@@ -18,7 +19,7 @@ export function makeServer(){return createServer(async(req,res)=>{
   if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405,{'Allow':'GET, HEAD'});res.end('Method not allowed');return;}
   let path;
   try{path=new URL(req.url,'http://localhost').pathname;}catch{res.writeHead(400);res.end('Bad request');return;}
-  if(path==='/exif'||path==='/photo-stats'||path==='/print-size'||path==='/resize'){res.writeHead(308,{'Location':path+'/'});res.end();return;}
+  if(path==='/exif'||path==='/photo-stats'||path==='/print-size'||path==='/resize'||path==='/contact-sheet'){res.writeHead(308,{'Location':path+'/'});res.end();return;}
   const file=routes.get(path);
   if(!file){res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'});res.end(req.method==='HEAD'?undefined:'Page not found');return;}
   try{
