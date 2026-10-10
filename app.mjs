@@ -165,6 +165,10 @@ const routes=new Map([
   "resize/index.html"
  ],
  [
+  "/splash.js",
+  "splash.js"
+ ],
+ [
   "/stats-app.mjs",
   "stats-app.mjs"
  ],
