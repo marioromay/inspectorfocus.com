@@ -2,7 +2,7 @@ export function layoutSheet({paper='letter',orientation='portrait',columns=4,lab
   if(!['letter','a4'].includes(paper)||!['portrait','landscape'].includes(orientation)||![2,3,4,5,6].includes(Number(columns)))throw Error('Invalid page settings.');
   let [width,height]=paper==='a4'?[595.28,841.89]:[612,792];
   if(orientation==='landscape')[width,height]=[height,width];
-  columns=Number(columns);const margin=30,gap=10,top=46,bottom=32,labelHeight=labels?18:0;
+  columns=Number(columns);const margin=30,gap=10,top=62,bottom=40,labelHeight=labels?18:0;
   const cellWidth=(width-2*margin-gap*(columns-1))/columns;
   const rows=Math.max(1,Math.floor((height-top-bottom+gap)/(cellWidth*.78+labelHeight+gap)));
   const cellHeight=(height-top-bottom-gap*(rows-1))/rows;
@@ -25,7 +25,7 @@ export function makePDF(pages,width,height){
   obj(2,`<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_,i)=>`${3+i*3} 0 R`).join(' ')}] >>`);
   for(let i=0;i<pages.length;i++){
     const p=pages[i],id=3+i*3;
-    obj(id,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /XObject << /Im0 ${id+1} 0 R >> >> /Contents ${id+2} 0 R >>`);
+    obj(id,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${width} ${height}] /Resources << /XObject << /Im0 ${id+1} 0 R >> >> /Contents ${id+2} 0 R /Annots [<< /Type /Annot /Subtype /Link /Rect [${width/2-145} 8 ${width/2+145} 26] /Border [0 0 0] /A << /S /URI /URI (https://inspectorfocus.com/contact-sheet/) >> >>] >>`);
     offsets[id+1]=length;append(`${id+1} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${p.width} /Height ${p.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${p.bytes.length} >>\nstream\n`);append(p.bytes);append('\nendstream\nendobj\n');
     const content=`q\n${width} 0 0 ${height} 0 0 cm\n/Im0 Do\nQ\n`;
     obj(id+2,`<< /Length ${enc.encode(content).length} >>\nstream\n${content}endstream`);

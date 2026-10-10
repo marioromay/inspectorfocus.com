@@ -12,7 +12,6 @@ nav{display:flex;gap:20px}nav a{text-decoration:none;color:var(--muted)}nav a[ar
 
 /* Larger approved character, shared type and theme control. */
 header{gap:24px;flex-wrap:wrap}.brand-logo{width:69px;height:83px}.brand{font-weight:700;gap:14px}.brand-name{white-space:nowrap}
-:root[data-theme="dark"] .brand-logo{filter:invert(1)}
 select:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 option{color:var(--ink);background:var(--paper)}
 @media(max-width:1000px) and (min-width:761px){header nav{gap:14px}.shell{padding:0 32px}.brand{font-size:21px}}

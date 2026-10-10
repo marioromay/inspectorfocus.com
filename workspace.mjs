@@ -1,6 +1,6 @@
 // Transfer only on a deliberate tool change. The record is consumed and deleted
 // by the destination; it is never uploaded or used as a photo library.
-const routes=new Set(['/exif/','/print-size/','/resize/']);
+const routes=new Set(['/exif/','/print-size/','/resize/','/crop/','/export/','/remove-metadata/']);
 const key='inspector-focus-handoff';const ttl=120000;
 function database(){return new Promise((resolve,reject)=>{
  if(!globalThis.indexedDB)return reject(Error('Browser storage is unavailable.'));
@@ -8,7 +8,7 @@ function database(){return new Promise((resolve,reject)=>{
  request.onupgradeneeded=()=>request.result.createObjectStore('handoff');request.onerror=request.onblocked=()=>{clearTimeout(timer);reject(Error('Browser storage is unavailable.'));};request.onsuccess=()=>{clearTimeout(timer);resolve(request.result);};
 });}
 async function transaction(action){const db=await database();try{return await new Promise((resolve,reject)=>{const tx=db.transaction('handoff','readwrite'),store=tx.objectStore('handoff');let value;const request=action(store);if(request)request.onsuccess=()=>{value=request.result;};tx.oncomplete=()=>resolve(value);tx.onerror=tx.onabort=()=>reject(Error('The photograph could not be transferred.'));});}finally{db.close();}}
-export function eligible(file,path){return routes.has(path)&&(path!=='/exif/'||file.type==='image/jpeg'||/\.jpe?g$/i.test(file.name));}
+export function eligible(file,path){return routes.has(path)&&(!['/exif/','/remove-metadata/'].includes(path)||file.type==='image/jpeg'||/\.jpe?g$/i.test(file.name));}
 export async function stage(file,path){
  const token=crypto.randomUUID(),record={file,path,token,expires:Date.now()+ttl};
  await transaction(store=>{store.clear();return store.put(record,'current');});

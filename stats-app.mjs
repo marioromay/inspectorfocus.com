@@ -27,11 +27,11 @@ async function analyze(selection){
   if(files.length>2000){say('Choose up to 2,000 photographs per collection. Your current results are unchanged.',true);return;}
   stats=createStats();skipped=0;issues=[];stop=false;running=true;$('choose').disabled=true;$('processing').hidden=false;$('results').hidden=true;$('issues').open=false;$('progress').max=files.length;$('progress').value=0;
   $('export').disabled=true;$('clear').disabled=true;say('Reading files locally. Nothing is uploaded.');
-  let processed=0;
+  let processed=0;const task=globalThis.processingProgress?.start({title:'Analyzing photo stats',detail:'Reading camera settings…',total:files.length,cancel:()=>{stop=true;},cancelLabel:'Stop after current read'});
   try{
-    for(const file of files){
+    await globalThis.processingProgress?.paint();for(const file of files){
       if(stop)break;
-      $('progress-label').textContent='Reading '+(processed+1).toLocaleString()+' of '+files.length.toLocaleString();
+      globalThis.processingProgress?.update(task,'Reading '+file.name,processed,files.length);$('progress-label').textContent='Reading '+(processed+1).toLocaleString()+' of '+files.length.toLocaleString();
       try{
         if(file.size>50*1024*1024)throw new Error('Exceeds the 50 MB per-file limit.');
         if(!/\.jpe?g$/i.test(file.name)&&file.type!=='image/jpeg')throw new Error('JPEG files only in this version.');
@@ -39,12 +39,12 @@ async function analyze(selection){
         if(stop)break;
         addPhoto(stats,data,file.size);if(data.warnings.length)issues.push(file.name+' — Some EXIF fields could not be read.');
       }catch(error){skipped++;issues.push(file.name+' — '+(error.message||'Could not read this file.'));}
-      processed++;$('progress').value=processed;
+      processed++;$('progress').value=processed;globalThis.processingProgress?.update(task,'Photographs read',processed,files.length);
       // Yield between files to keep Stop and the rest of the page responsive.
       await new Promise(resolve=>setTimeout(resolve,0));
     }
   }finally{
-    running=false;$('choose').disabled=false;$('choose').textContent='Replace collection';$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
+    globalThis.processingProgress?.finish(task);running=false;$('choose').disabled=false;$('choose').textContent='Replace collection';$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
     const incomplete=stats.partial?stats.partial+' file(s) had unreadable EXIF fields. ':'';
     say((stop?'Stopped. Results cover completed files only. ':'Analysis complete. ')+stats.count.toLocaleString()+' read · '+skipped.toLocaleString()+' skipped. '+incomplete+(stats.count&&!stats.withSettings?'No supported shooting settings were found. Orientation still comes from image dimensions. Try camera originals or exports that retain metadata.':'Percentages exclude missing values.'));
   }

@@ -1,3 +1,4 @@
+globalThis.processingProgress={start:()=>1,update(){},finish(){},paint:async()=>{}};
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // Lightweight DOM harness for batch controls; visual browser QA is separate.

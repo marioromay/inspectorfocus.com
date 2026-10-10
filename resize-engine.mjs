@@ -16,7 +16,7 @@ export function exportFilename(name,width,height) {
   const stem=String(name).replace(/\.[^.]*$/,'').replace(/[\x00-\x1f<>:"/\\|?*]/g,'_').slice(0,120)||'photograph';
   return `${stem}-${width}x${height}.jpg`;
 }
-export async function encodeJpeg(image,dimensions,quality,makeCanvas=()=>document.createElement('canvas')) {
+export async function encodeJpeg(image,dimensions,quality,makeCanvas=()=>document.createElement('canvas'),crop=null) {
   if(!Number.isInteger(quality)||quality<50||quality>100)throw new Error('Choose JPEG quality from 50 to 100.');
   const canvas=makeCanvas();canvas.width=dimensions.width;canvas.height=dimensions.height;
   try {
@@ -24,7 +24,8 @@ export async function encodeJpeg(image,dimensions,quality,makeCanvas=()=>documen
     if(!context)throw new Error('The browser could not create the image. Try a smaller size.');
     context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);
     context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
-    context.drawImage(image,0,0,canvas.width,canvas.height);
+    if(crop)context.drawImage(image,crop.x,crop.y,crop.width,crop.height,0,0,canvas.width,canvas.height);
+    else context.drawImage(image,0,0,canvas.width,canvas.height);
     const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',quality/100));
     if(!blob||!blob.size)throw new Error('The browser could not export this image. Try a smaller size.');
     if(blob.type!=='image/jpeg')throw new Error('JPEG export is unavailable in this browser.');

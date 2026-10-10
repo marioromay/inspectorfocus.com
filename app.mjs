@@ -1,35 +1,260 @@
-// Hostinger Node entrypoint. Image processing runs exclusively in the browser.
+// Hostinger Node entrypoint. Photograph processing stays in the browser.
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
-
 const root=new URL('./',import.meta.url);
 const routes=new Map([
-  ['/','index.html'],['/index.html','index.html'],
-  ['/exif/','exif/index.html'],['/exif/index.html','exif/index.html'],
-  ['/photo-stats/','photo-stats/index.html'],['/photo-stats/index.html','photo-stats/index.html'],
-  ['/print-size/','print-size/index.html'],['/print-size/index.html','print-size/index.html'],
-  ['/contact-sheet/','contact-sheet/index.html'],['/contact-sheet/index.html','contact-sheet/index.html'],
-  ['/resize/','resize/index.html'],['/resize/index.html','resize/index.html'],
-  ...['contact-app.mjs','contact-engine.mjs','contact.css','workspace.mjs','home.css','resize-app.mjs','resize-engine.mjs','resize.css','theme.js','editorial.css','print-app.mjs','print-engine.mjs','print.css','exif-app.mjs','exif-reader.mjs','stats-app.mjs','stats-engine.mjs','style.css','stats.css','favicon.svg','brand/inspector-focus.png'].map(path=>['/'+path,path])
+ [
+  "/about/index.html",
+  "about/index.html"
+ ],
+ [
+  "/batch-app.mjs",
+  "batch-app.mjs"
+ ],
+ [
+  "/batch-resize/index.html",
+  "batch-resize/index.html"
+ ],
+ [
+  "/batch/index.html",
+  "batch/index.html"
+ ],
+ [
+  "/brand/inspector-focus-comic.png",
+  "brand/inspector-focus-comic.png"
+ ],
+ [
+  "/brand/inspector-focus.png",
+  "brand/inspector-focus.png"
+ ],
+ [
+  "/contact-app.mjs",
+  "contact-app.mjs"
+ ],
+ [
+  "/contact-engine.mjs",
+  "contact-engine.mjs"
+ ],
+ [
+  "/contact-renderer.mjs",
+  "contact-renderer.mjs"
+ ],
+ [
+  "/contact-sheet/index.html",
+  "contact-sheet/index.html"
+ ],
+ [
+  "/contact.css",
+  "contact.css"
+ ],
+ [
+  "/crop-app.mjs",
+  "crop-app.mjs"
+ ],
+ [
+  "/crop-engine.mjs",
+  "crop-engine.mjs"
+ ],
+ [
+  "/crop/index.html",
+  "crop/index.html"
+ ],
+ [
+  "/editorial.css",
+  "editorial.css"
+ ],
+ [
+  "/exif-app.mjs",
+  "exif-app.mjs"
+ ],
+ [
+  "/exif-cleanup.mjs",
+  "exif-cleanup.mjs"
+ ],
+ [
+  "/exif-reader.mjs",
+  "exif-reader.mjs"
+ ],
+ [
+  "/exif/index.html",
+  "exif/index.html"
+ ],
+ [
+  "/export-app.mjs",
+  "export-app.mjs"
+ ],
+ [
+  "/export/index.html",
+  "export/index.html"
+ ],
+ [
+  "/favicon.svg",
+  "favicon.svg"
+ ],
+ [
+  "/home.css",
+  "home.css"
+ ],
+ [
+  "/index.html",
+  "index.html"
+ ],
+ [
+  "/photo-stats/index.html",
+  "photo-stats/index.html"
+ ],
+ [
+  "/print-app.mjs",
+  "print-app.mjs"
+ ],
+ [
+  "/print-engine.mjs",
+  "print-engine.mjs"
+ ],
+ [
+  "/print-size/index.html",
+  "print-size/index.html"
+ ],
+ [
+  "/print.css",
+  "print.css"
+ ],
+ [
+  "/privacy-app.mjs",
+  "privacy-app.mjs"
+ ],
+ [
+  "/privacy-engine.mjs",
+  "privacy-engine.mjs"
+ ],
+ [
+  "/privacy/index.html",
+  "privacy/index.html"
+ ],
+ [
+  "/processing.js",
+  "processing.js"
+ ],
+ [
+  "/remove-metadata/index.html",
+  "remove-metadata/index.html"
+ ],
+ [
+  "/resize-app.mjs",
+  "resize-app.mjs"
+ ],
+ [
+  "/resize-engine.mjs",
+  "resize-engine.mjs"
+ ],
+ [
+  "/resize.css",
+  "resize.css"
+ ],
+ [
+  "/resize/index.html",
+  "resize/index.html"
+ ],
+ [
+  "/stats-app.mjs",
+  "stats-app.mjs"
+ ],
+ [
+  "/stats-engine.mjs",
+  "stats-engine.mjs"
+ ],
+ [
+  "/stats.css",
+  "stats.css"
+ ],
+ [
+  "/style.css",
+  "style.css"
+ ],
+ [
+  "/theme.js",
+  "theme.js"
+ ],
+ [
+  "/toolset.css",
+  "toolset.css"
+ ],
+ [
+  "/workspace.mjs",
+  "workspace.mjs"
+ ],
+ [
+  "/zip-engine.mjs",
+  "zip-engine.mjs"
+ ],
+ [
+  "/",
+  "index.html"
+ ],
+ [
+  "/about/",
+  "about/index.html"
+ ],
+ [
+  "/batch/",
+  "batch/index.html"
+ ],
+ [
+  "/batch-resize/",
+  "batch-resize/index.html"
+ ],
+ [
+  "/contact-sheet/",
+  "contact-sheet/index.html"
+ ],
+ [
+  "/crop/",
+  "crop/index.html"
+ ],
+ [
+  "/exif/",
+  "exif/index.html"
+ ],
+ [
+  "/export/",
+  "export/index.html"
+ ],
+ [
+  "/photo-stats/",
+  "photo-stats/index.html"
+ ],
+ [
+  "/print-size/",
+  "print-size/index.html"
+ ],
+ [
+  "/privacy/",
+  "privacy/index.html"
+ ],
+ [
+  "/remove-metadata/",
+  "remove-metadata/index.html"
+ ],
+ [
+  "/resize/",
+  "resize/index.html"
+ ]
 ]);
+const directoryRoutes=new Set(["/about", "/batch", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
 const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png'};
 export function makeServer(){return createServer(async(req,res)=>{
-  res.setHeader('X-Content-Type-Options','nosniff');
-  if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405,{'Allow':'GET, HEAD'});res.end('Method not allowed');return;}
-  let path;
-  try{path=new URL(req.url,'http://localhost').pathname;}catch{res.writeHead(400);res.end('Bad request');return;}
-  if(path==='/exif'||path==='/photo-stats'||path==='/print-size'||path==='/resize'||path==='/contact-sheet'){res.writeHead(308,{'Location':path+'/'});res.end();return;}
-  const file=routes.get(path);
-  if(!file){res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'});res.end(req.method==='HEAD'?undefined:'Page not found');return;}
-  try{
-    const body=await readFile(new URL(file,root));
-    res.writeHead(200,{'Content-Type':mime[file.split('.').pop()],'Content-Length':body.length,'Cache-Control':'no-cache'});
-    res.end(req.method==='HEAD'?undefined:body);
-  }catch{res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('Could not serve this page');}
+ res.setHeader('X-Content-Type-Options','nosniff');
+ if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405,{'Allow':'GET, HEAD'});res.end('Method not allowed');return;}
+ let path;try{path=new URL(req.url,'http://localhost').pathname;}catch{res.writeHead(400);res.end('Bad request');return;}
+ if(directoryRoutes.has(path)){res.writeHead(308,{'Location':path+'/'});res.end();return;}
+ const file=routes.get(path);
+ if(!file){res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'});res.end(req.method==='HEAD'?undefined:'Page not found');return;}
+ try{const body=await readFile(new URL(file,root));res.writeHead(200,{'Content-Type':mime[file.split('.').pop()],'Content-Length':body.length,'Cache-Control':'no-cache'});res.end(req.method==='HEAD'?undefined:body);}
+ catch{res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('Could not serve this page');}
 });}
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
-  const port=Number(process.env.PORT||3000);
-  if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Invalid PORT');
-  makeServer().listen(port,'0.0.0.0',()=>console.log('Inspector Focus listening on port '+port));
+ const port=Number(process.env.PORT||3000);
+ if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Invalid PORT');
+ makeServer().listen(port,'0.0.0.0',()=>console.log('Inspector Focus listening on port '+port));
 }

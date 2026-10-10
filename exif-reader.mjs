@@ -34,7 +34,7 @@ export function inspectJPEG(buffer) {
     const u16 = x => { safe(x,2); return v.getUint16(x,little); };
     const u32 = x => { safe(x,4); return v.getUint32(x,little); };
     if (u16(base+2) !== 42) throw new Error('Invalid TIFF');
-    const names = {271:'make',272:'model',274:'orientation',33434:'exposure',33437:'aperture',34855:'iso',36867:'capture',36881:'offset',37386:'focal',42036:'lens'};
+    const names = {271:'make',272:'model',274:'orientation',33434:'exposure',33437:'aperture',34855:'iso',36867:'capture',36881:'offset',37386:'focal',42036:'lens',42033:'cameraSerial',42037:'lensSerial',315:'artist',33432:'copyright'};
     const visited = new Set();
     function value(entry) {
       const type = u16(entry+2), count = u32(entry+4), sizes = {1:1,2:1,3:2,4:4,5:8,7:1,9:4,10:8}, size = sizes[type];
