@@ -1,0 +1,17 @@
+# Inspector Focus
+
+Local-first photography utilities: EXIF Data (`/exif/`) and Photo Stats (`/photo-stats/`). Photographs and extracted metadata never leave the browser. No accounts, dependencies, or build step are required for the tools.
+
+## Hosting
+
+Serve the repository root as a static website. Preserve the directory structure so `/exif/` and `/photo-stats/` resolve to their `index.html` files. Serve `.mjs` files as JavaScript (the included `.htaccess` handles Apache hosting). HTTPS enables the clipboard feature.
+
+## Tests
+
+Run `npm test` with Node.js 20 or newer. Tests cover EXIF parsing, missing-value denominators, dates, CSV escaping, batch errors and stopping.
+
+## Current limits
+
+JPEG only, 50 MB per file. Photo Stats supports up to 2,000 files and replaces the previous collection. It reads standard EXIF, not XMP/IPTC or manufacturer MakerNotes. Missing fields stay missing. Percentages exclude missing values; times use recorded camera time. Photo Stats counts files individually, without deduplication. CSV contains aggregates only, without filenames or GPS. No RAW support, metadata editing/removal, or photo storage.
+
+The included PNG is the approved Inspector Focus character.
