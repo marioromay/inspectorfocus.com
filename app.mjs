@@ -1,44 +1,32 @@
-import { inspectJPEG, coordinates } from './exif-reader.mjs';
-const $ = id => document.getElementById(id);
-let imageURL = null, summary = '', generation = 0;
-const original = Object.fromEntries(['camera','lens','state','focal','aperture','shutter','iso','dimensions','resolution','size','capture','privacy','privacy-note'].map(id=>[id,$(id).textContent]));
-function message(text,error=false){$('message').textContent=text;$('message').classList.toggle('error',error);}
-function reset(){generation++;if(imageURL)URL.revokeObjectURL(imageURL);imageURL=null;summary='';$('photo').removeAttribute('src');$('file').value='';$('empty').hidden=false;$('preview').hidden=true;$('filebar').hidden=true;$('location').hidden=true;$('location').open=false;$('copy').disabled=true;for(const [id,text] of Object.entries(original))$(id).textContent=text;message('');}
-$('choose').onclick=$('replace').onclick=()=>$('file').click();$('clear').onclick=reset;
-$('file').onchange=()=>{if($('file').files[0])load($('file').files[0]);};
-const zone=$('dropzone');for(const event of ['dragenter','dragover'])zone.addEventListener(event,e=>{e.preventDefault();$('empty').classList.add('drag');});
-for(const event of ['dragleave','drop'])zone.addEventListener(event,e=>{e.preventDefault();$('empty').classList.remove('drag');});
-zone.addEventListener('drop',e=>{const files=e.dataTransfer.files;if(files.length!==1){message('Choose one photograph at a time.',true);return;}load(files[0]);});
-const positive=x=>Number.isFinite(x)&&x>0;
-const number=x=>Number(x.toFixed(2)).toString();
-async function load(file){
-  const run=++generation;message('Reading photograph locally…');
-  if(file.size>50*1024*1024){message('This first version supports JPEG files up to 50 MB.',true);return;}
+// Hostinger Node entrypoint. Image processing runs exclusively in the browser.
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {fileURLToPath} from 'node:url';
+
+const root=new URL('./',import.meta.url);
+const routes=new Map([
+  ['/','index.html'],['/index.html','index.html'],
+  ['/exif/','exif/index.html'],['/exif/index.html','exif/index.html'],
+  ['/photo-stats/','photo-stats/index.html'],['/photo-stats/index.html','photo-stats/index.html'],
+  ...['exif-app.mjs','exif-reader.mjs','stats-app.mjs','stats-engine.mjs','style.css','stats.css','favicon.svg','brand/inspector-focus.png'].map(path=>['/'+path,path])
+]);
+const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png'};
+export function makeServer(){return createServer(async(req,res)=>{
+  res.setHeader('X-Content-Type-Options','nosniff');
+  if(req.method!=='GET'&&req.method!=='HEAD'){res.writeHead(405,{'Allow':'GET, HEAD'});res.end('Method not allowed');return;}
+  let path;
+  try{path=new URL(req.url,'http://localhost').pathname;}catch{res.writeHead(400);res.end('Bad request');return;}
+  if(path==='/exif'||path==='/photo-stats'){res.writeHead(308,{'Location':path+'/'});res.end();return;}
+  const file=routes.get(path);
+  if(!file){res.writeHead(404,{'Content-Type':'text/plain; charset=utf-8'});res.end(req.method==='HEAD'?undefined:'Page not found');return;}
   try{
-    const buffer=await file.arrayBuffer();if(run!==generation)return;
-    const data=inspectJPEG(buffer), t=data.tags, missing='Not recorded';
-    const fieldMissing=data.warnings.length?'Could not read':'Not present';
-    const model=t.model||t.make||fieldMissing, camera=t.make&&t.model&&!t.model.toLowerCase().includes(t.make.toLowerCase())?t.make+' '+t.model:model;
-    const focal=positive(t.focal)?number(t.focal)+'mm':missing;
-    const aperture=positive(t.aperture)?'f/'+number(t.aperture):missing;
-    const shutter=positive(t.exposure)?(t.exposure<1?'1/'+Math.round(1/t.exposure):number(t.exposure))+' sec':missing;
-    const iso=positive(t.iso)?String(t.iso):missing;
-    const rotate=[5,6,7,8].includes(t.orientation), w=rotate?data.height:data.width,h=rotate?data.width:data.height;
-    if(imageURL)URL.revokeObjectURL(imageURL);imageURL=URL.createObjectURL(file);$('photo').src=imageURL;
-    $('empty').hidden=true;$('preview').hidden=false;$('filebar').hidden=false;$('filename').textContent=file.name;
-    const hasSettings=Boolean(t.make||t.model||t.lens||[t.focal,t.aperture,t.exposure,t.iso].some(positive));
-    $('camera').textContent=hasSettings?camera:data.warnings.length?'Shooting details unreadable':'Shooting details unavailable';
-    $('lens').textContent=t.lens||(hasSettings?'Lens '+fieldMissing.toLowerCase():data.warnings.length?'EXIF was detected, but some fields could not be read.':'This file has no supported camera or exposure fields.');
-    for(const [id,value]of Object.entries({focal,aperture,shutter,iso,dimensions:w.toLocaleString()+' × '+h.toLocaleString()+' px',resolution:number(w*h/1e6)+' MP',size:number(file.size/1024/1024)+' MB',capture:t.capture?String(t.capture).replace(/^(\d{4}):(\d{2}):(\d{2})/,'$1-$2-$3')+(t.offset?' (UTC'+t.offset+')':' · time zone not recorded'):missing}))$(id).textContent=value;
-    for(const id of ['focal','aperture','shutter','iso'])if($(id).textContent===missing){$(id).textContent='—';$(id).title=fieldMissing;}
-    $('state').textContent=data.warnings.length?'EXIF READ INCOMPLETE':!data.exif?'NO EXIF FOUND':hasSettings?'SHOOTING DATA FOUND':'LIMITED EXIF';
-    $('privacy').textContent=data.gps?'EXIF GPS metadata detected':data.warnings.length?'EXIF GPS check incomplete':'No EXIF GPS metadata detected';
-    $('privacy-note').textContent=data.gps?'Coordinates stay on your device and are excluded from the copied summary.':data.warnings.length?'Some EXIF fields could not be read. Location data may still be present.':'Other metadata containers are not checked in this version.';
-    const gps=coordinates(t);$('location').hidden=!data.gps;$('location').open=false;$('coords').textContent=gps?gps.map(n=>n.toFixed(6)).join(', '):'Coordinates were incomplete or could not be read.';
-    summary=[t.model||t.make,t.lens,positive(t.focal)?focal:null,positive(t.aperture)?aperture:null,positive(t.exposure)?shutter:null,positive(t.iso)?'ISO '+iso:null].filter(Boolean).join(' · ');$('copy').disabled=!hasSettings;
-    message(data.warnings.length?'Some EXIF fields could not be read. Missing values may reflect a reading problem; try the original camera JPEG.':!hasSettings?(data.exif?'This JPEG contains limited EXIF, but no supported camera or exposure settings. ':'No EXIF was found in this JPEG. ')+'Try a JPEG straight from the camera or an export with camera metadata included. Resized or shared copies may omit these details. The tool cannot recover metadata that is absent.':'Inspection complete. A dash means that field is not present in the supported EXIF data. Your original file is unchanged.',data.warnings.length>0);
-  }catch(error){if(run!==generation)return;reset();message(error.message||'This photograph could not be read.',true);}
+    const body=await readFile(new URL(file,root));
+    res.writeHead(200,{'Content-Type':mime[file.split('.').pop()],'Content-Length':body.length,'Cache-Control':'no-cache'});
+    res.end(req.method==='HEAD'?undefined:body);
+  }catch{res.writeHead(500,{'Content-Type':'text/plain; charset=utf-8'});res.end('Could not serve this page');}
+});}
+if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
+  const port=Number(process.env.PORT||3000);
+  if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Invalid PORT');
+  makeServer().listen(port,'0.0.0.0',()=>console.log('Inspector Focus listening on port '+port));
 }
-$('photo').onerror=()=>message('Metadata was read, but this browser could not display the JPEG preview.',true);
-$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(summary);message('Shooting summary copied. Location and capture time are excluded.');}catch{message('Clipboard access is unavailable. Select and copy this summary: '+summary);}};
-window.addEventListener('pagehide',()=>{if(imageURL)URL.revokeObjectURL(imageURL);});
