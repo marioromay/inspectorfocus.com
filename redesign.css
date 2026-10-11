@@ -269,11 +269,8 @@ footer{font-size:10px;padding:18px 72px 24px 0;gap:16px}
 .credits-dialog a{color:inherit;text-underline-offset:3px}
 @media(max-width:760px){.focus-footer.compact-footer{padding:8px 0;gap:0 10px}}
 
-/* Full-width page shell with a footer at the bottom of short pages. */
+/* Keep the original responsive shell; place the footer below short-page space. */
 body{padding-bottom:0}
-.shell{display:flex;flex-direction:column;align-items:stretch;width:100%;max-width:none;min-width:0;min-height:100vh;min-height:100dvh;margin:0;text-align:left}
+.shell{display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
 .shell>header,.shell>.privacy-strip,.shell>main,.shell>footer{flex-shrink:0;min-width:0}
-.shell>main{width:100%}
 .shell>footer.focus-footer.compact-footer{margin-top:auto}
-.shell>header nav a{justify-content:flex-start}
-.shell>header nav a.meet-mobile{justify-content:flex-start}
