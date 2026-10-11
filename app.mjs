@@ -4,6 +4,8 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 const root=new URL('./',import.meta.url);
 const routes=new Map([
+ ["/redesign.css", "redesign.css"],
+ ["/navigation.js", "navigation.js"],
  [
   "/about/index.html",
   "about/index.html"
