@@ -45,3 +45,39 @@ export async function encodeImage(image,dimensions,quality,makeCanvas=()=>docume
     return blob;
   } finally {canvas.width=0;canvas.height=0;}
 }
+
+export function targetFileBytes(value, unit='MB') {
+  const size=Number(value), multiplier=unit==='KB'?1000:unit==='MB'?1000000:0;
+  const bytes=Math.floor(size*multiplier);
+  if(!Number.isFinite(size)||!multiplier||bytes<10000||bytes>50000000)throw Error('Choose a file-size limit from 10 KB to 50 MB.');
+  return bytes;
+}
+// Every attempt renders from the original crop, never from a compressed copy.
+export async function encodeToTarget(image, dimensions, quality, makeCanvas, crop, format, background, targetBytes, isCancelled=()=>false, encode=encodeImage) {
+  if(!Number.isSafeInteger(targetBytes)||targetBytes<10000||targetBytes>50000000)throw Error('Choose a file-size limit from 10 KB to 50 MB.');
+  let d={...dimensions};
+  const attempt=async q=>{
+    if(isCancelled())throw Error('Export cancelled.');
+    const blob=await encode(image,d,q,makeCanvas,crop,format,background);
+    if(isCancelled())throw Error('Export cancelled.');
+    return {blob,dimensions:{...d},quality:format==='png'?null:q};
+  };
+  for(let step=0;step<12;step++){
+    let result=await attempt(quality);
+    if(result.blob.size<=targetBytes)return result;
+    if(format!=='png'&&quality>50){
+      const smallest=await attempt(50);
+      if(smallest.blob.size<=targetBytes){
+        let best=smallest,lo=51,hi=quality-1;
+        while(lo<=hi){const q=Math.floor((lo+hi)/2),candidate=await attempt(q);if(candidate.blob.size<=targetBytes){best=candidate;lo=q+1;}else hi=q-1;}
+        return best;
+      }
+      result=smallest;
+    }
+    const scale=Math.min(.85,Math.sqrt(targetBytes/result.blob.size)*.92);
+    const next={width:Math.max(1,Math.floor(d.width*scale)),height:Math.max(1,Math.floor(d.height*scale)),reduced:true};
+    if(next.width===d.width&&next.height===d.height)break;
+    d=next;
+  }
+  throw Error('This image could not meet the file-size limit. Increase the limit or choose another format.');
+}

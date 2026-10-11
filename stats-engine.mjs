@@ -18,18 +18,13 @@ export function addPhoto(stats,data,bytes=0){
   stats.count++;stats.bytes+=bytes;if(!data.exif)stats.noEXIF++;if(data.warnings.length)stats.partial++;
   const t=data.tags;
   if(t.model||t.make||t.lens||[t.focal,t.aperture,t.iso,t.exposure].some(positive))stats.withSettings++;
-  function add(id,key){if(key===null||key===undefined)return;const g=stats.groups[id];g.known++;g.counts.set(key,(g.counts.get(key)||0)+1);}
-  add('focal',positive(t.focal)?Math.round(t.focal):null);
-  add('aperture',positive(t.aperture)?round(t.aperture):null);
-  add('iso',positive(t.iso)?t.iso:null);
-  if(positive(t.exposure))add('shutter',t.exposure<=1/1000?0:t.exposure<=1/250?1:t.exposure<=1/60?2:t.exposure<=1/15?3:t.exposure<1?4:5);
-  const make=clean(t.make),model=clean(t.model);
-  add('camera',model?(make&&!model.toLowerCase().includes(make.toLowerCase())?make+' '+model:model):make);
-  add('lens',clean(t.lens));
-  const rotated=[5,6,7,8].includes(t.orientation),w=rotated?data.height:data.width,h=rotated?data.width:data.height;
-  add('orientation',positive(w)&&positive(h)?w===h?'Square':w>h?'Landscape':'Portrait':null);
+  const values=photoValues(data);
+  for(const [id,key] of Object.entries(values)){
+    if(key===null||key===undefined)continue;
+    const g=stats.groups[id];g.known++;g.counts.set(key,(g.counts.get(key)||0)+1);
+  }
   const date=recordedDate(t.capture);
-  if(date){add('hour',date.hour);add('month',date.day.slice(0,7));if(!stats.first||date.day<stats.first)stats.first=date.day;if(!stats.last||date.day>stats.last)stats.last=date.day;}
+  if(date){if(!stats.first||date.day<stats.first)stats.first=date.day;if(!stats.last||date.day>stats.last)stats.last=date.day;}
   return stats;
 }
 export function recordedDate(raw){
@@ -47,4 +42,26 @@ export function exportCSV(stats){
   const rows=[['Metric','Value','Photos','Percent of known values','Known values','Missing values']];
   for(const m of metrics){const g=stats.groups[m.id];for(const [key,n]of entries(stats,m.id))rows.push([m.title,label(m.id,key),n,(n/g.known*100).toFixed(1),g.known,stats.count-g.known]);if(!g.known)rows.push([m.title,'No recorded values',0,'',0,stats.count]);}
   return rows.map(row=>row.map(safe).join(',')).join('\r\n');
+}
+
+// Store only normalized statistic keys beside session-local File references.
+export function photoValues(data){
+  const t=data.tags, values=Object.fromEntries(metrics.map(m=>[m.id,null]));
+  const add=(id,key)=>{values[id]=key;};
+  add('focal',positive(t.focal)?Math.round(t.focal):null);
+  add('aperture',positive(t.aperture)?round(t.aperture):null);
+  add('iso',positive(t.iso)?t.iso:null);
+  if(positive(t.exposure))add('shutter',t.exposure<=1/1000?0:t.exposure<=1/250?1:t.exposure<=1/60?2:t.exposure<=1/15?3:t.exposure<1?4:5);
+  const make=clean(t.make),model=clean(t.model);
+  add('camera',model?(make&&!model.toLowerCase().includes(make.toLowerCase())?make+' '+model:model):make);
+  add('lens',clean(t.lens));
+  const rotated=[5,6,7,8].includes(t.orientation),w=rotated?data.height:data.width,h=rotated?data.width:data.height;
+  add('orientation',positive(w)&&positive(h)?w===h?'Square':w>h?'Landscape':'Portrait':null);
+  const date=recordedDate(t.capture);
+  if(date){add('hour',date.hour);add('month',date.day.slice(0,7));}
+  return values;
+}
+export function matchingPhotos(photos,id,key){
+  if(!metrics.some(m=>m.id===id))throw Error('Unknown statistic.');
+  return photos.filter(photo=>key==='all'||(key==='missing'?photo.values[id]===null:String(photo.values[id])===String(key)));
 }

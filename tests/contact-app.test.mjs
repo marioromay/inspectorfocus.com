@@ -21,3 +21,26 @@ test('manual ordering, removal and selection-order recovery invalidate the PDF',
  $('order').value='added';$('order').onchange();assert.match(list.children[0].children[1].textContent,/first.jpg/);
  list.children[1].children[2].children[2].onclick();assert.equal(list.children.length,2);assert.equal($('count').textContent,'2 photographs');assert.ok(!list.children.some(row=>row.children[1].textContent.includes('second.jpg')));
 });
+test('preview-first editor opens side-by-side organization and preserves order and settings on Done',async()=>{
+ $('clear').onclick();$('order').value='added';$('columns').value='4';$('shoot-title').value='My shoot';$('files').files=[{...photo,name:'one.jpg'},{...photo,name:'two.jpg'}];await $('files').onchange();
+ assert.equal($('organizer-panel').hidden,true);assert.equal($('sheet-controls').hidden,false);assert.equal($('organize').hidden,false);
+ $('organize').onclick();assert.equal($('organizer-panel').hidden,false);assert.equal($('sheet-controls').hidden,true);assert.equal($('done-organizing').hidden,false);
+ $('preview-tab').onclick();$('organizer-tab').onclick();
+ $('organizer').children[0].children[2].children[1].onclick();assert.match($('organizer').children[0].children[1].textContent,/two.jpg/);
+ $('done-organizing').onclick();assert.equal($('organizer-panel').hidden,true);assert.equal($('sheet-controls').hidden,false);assert.equal($('shoot-title').value,'My shoot');assert.equal($('columns').value,'4');assert.equal($('order').value,'manual');
+ $('organize').onclick();assert.match($('organizer').children[0].children[1].textContent,/two.jpg/);$('clear').onclick();assert.equal($('organizer-panel').hidden,true);
+});
+test('drag hover previews proposed order without committing; drop commits and invalidates PDF',async()=>{
+ $('order').value='added';$('files').files=[{...photo,name:'left.jpg'},{...photo,name:'right.jpg'}];await $('files').onchange();await $('generate').onclick();$('organize').onclick();
+ const original=$('organizer').children.slice(),data=new Map(),transfer={types:['application/x-inspector-photo'],setData(k,v){data.set(k,v);},getData(k){return data.get(k)||'';}};
+ const event={dataTransfer:transfer,preventDefault(){},stopPropagation(){}};
+ original[0].ondragstart(event);original[1].ondragover(event);await new Promise(r=>setImmediate(r));
+ assert.equal($('organizer').children[0],original[0]);assert.equal($('order').value,'added');assert.equal($('download').hidden,false);
+ original[1].ondrop(event);await new Promise(r=>setImmediate(r));assert.match($('organizer').children[0].children[1].textContent,/right.jpg/);assert.equal($('order').value,'manual');assert.equal($('download').hidden,true);
+ $('organizer-order').value='added';$('organizer-order').onchange();assert.match($('organizer').children[0].children[1].textContent,/left.jpg/);$('clear').onclick();
+});
+test('contact page has separate organizing and preview regions with real controls',async()=>{
+ const {readFile}=await import('node:fs/promises');const {URL:FileURL}=await import('node:url');const html=await readFile(new FileURL('../contact-sheet/index.html',import.meta.url),'utf8');
+ for(const id of ['sheet-controls','organize','done-organizing','organizing-tabs','organizer-tab','preview-tab','contact-editor','organizer-panel','sheet-preview-panel','organizer-order'])assert.ok(html.includes('id="'+id+'"'));
+ assert.ok(!html.includes('<details class="photo-organizer"'));
+});

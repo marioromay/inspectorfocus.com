@@ -1,4 +1,4 @@
-import {resizeDimensions,imageFormat,exportFilename,encodeJpeg} from './resize-engine.mjs?v=7ca3185288c4';import {makeZIP,uniqueName} from './zip-engine.mjs?v=24095449ff98';
+import {resizeDimensions,imageFormat,exportFilename,encodeJpeg} from './resize-engine.mjs?v=36ad5239d887';import {makeZIP,uniqueName} from './zip-engine.mjs?v=24095449ff98';
 const $=id=>document.getElementById(id);let files=[],generation=0,running=false,stop=false,downloadURL=null;
 const say=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 function release(){if(downloadURL)URL.revokeObjectURL(downloadURL);downloadURL=null;$('download').hidden=true;$('download').removeAttribute('href');$('export-facts').textContent='';}

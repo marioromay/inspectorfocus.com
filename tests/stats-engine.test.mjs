@@ -23,3 +23,10 @@ test('CSV exports aggregates, handles quotes, blocks formula cells, excludes GPS
   const s=createStats();addPhoto(s,photo({lens:'=DANGEROUS',model:'A "camera"',gps2:[41,0,0],capture:'2026:10:10 10:00:00'}));const csv=exportCSV(s);assert.ok(csv.includes("'=DANGEROUS"));assert.ok(csv.includes('A ""camera""'));assert.ok(!csv.includes('gps'));assert.ok(csv.includes('Percent of known values'));assert.ok(csv.includes('No recorded values'));
 });
 test('Empty collection and partial reads remain explicit',()=>{const s=createStats();assert.deepEqual(entries(s,'focal'),[]);assert.ok(exportCSV(s).includes('No recorded values'));addPhoto(s,photo({}, {warnings:['Bad field']}));assert.equal(s.partial,1);});
+test('photo filter keys match aggregate buckets, including missing data and shutter boundaries',async()=>{
+ const {photoValues,matchingPhotos,metrics}=await import('../stats-engine.mjs');
+ const records=[{width:6000,height:4000,tags:{focal:35.4,aperture:5.56,iso:400,exposure:1/250,make:'Sony',model:'ILCE-6700',lens:'Prime',orientation:6,capture:'2026:10:10 16:05:00'},exif:true,warnings:[]},{width:200,height:100,tags:{exposure:1/1000},exif:true,warnings:[]},{width:100,height:100,tags:{capture:'2026:02:30 12:00:00'},exif:false,warnings:[]}];
+ const stats=createStats(),photos=records.map((data,i)=>{addPhoto(stats,data);return {file:{name:i+'.jpg'},values:photoValues(data)};});
+ for(const metric of metrics){for(const [key,count] of stats.groups[metric.id].counts)assert.equal(matchingPhotos(photos,metric.id,String(key)).length,count);assert.equal(matchingPhotos(photos,metric.id,'missing').length,stats.count-stats.groups[metric.id].known);}
+ assert.equal(photos[0].values.orientation,'Portrait');assert.equal(photos[0].values.aperture,5.6);assert.equal(photos[2].values.hour,null);assert.equal(matchingPhotos(photos,'focal','all').length,3);assert.throws(()=>matchingPhotos(photos,'gps','all'));
+});

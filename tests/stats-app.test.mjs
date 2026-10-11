@@ -24,3 +24,35 @@ test('Oversized collection is rejected before any file read',async()=>{
 test('sample charts are labeled and cannot be mistaken for an exported collection',()=>{
  $('sample').onclick();assert.equal($('count').textContent,'120');assert.match($('collection-label').textContent,/Sample/);assert.match($('message').textContent,/illustrative values/);assert.equal($('export').disabled,true);assert.equal($('stats-insights').children.length,4);assert.equal($('charts').children.length,9);$('clear').onclick();assert.equal($('results').hidden,true);
 });
+test('a chart value shows matching photos; missing values, paging and cleanup keep counts consistent',async()=>{
+ $('files').files=Array.from({length:25},(_,i)=>file('frame-'+i+'.jpg'));await $('files').onchange();
+ assert.equal($('matching-photos').hidden,true);assert.equal($('matching-grid').children.length,0);const initialChart=$('charts').children[6],initialGraph=initialChart.children.find(n=>n.className==='rank-chart');initialGraph.children[0].onclick();assert.equal($('matching-photos').hidden,false);assert.equal($('matching-grid').children.length,24);assert.match($('matching-count').textContent,/25 matching/);
+ $('matching-next').onclick();assert.equal($('matching-grid').children.length,1);assert.match($('matching-page').textContent,/2 of 2/);
+ $('photo-metric').value='focal';$('photo-metric').onchange();$('photo-value').value='missing';$('photo-value').onchange();assert.match($('matching-count').textContent,/25 matching/);
+ // Orientation is known even when EXIF is absent. The seventh chart is orientation.
+ const chart=$('charts').children[6],graph=chart.children.find(n=>n.className==='rank-chart');assert.ok(graph);graph.children[0].onclick();assert.equal($('photo-metric').value,'orientation');assert.equal($('photo-value').value,'Landscape');assert.equal($('matching-grid').children.length,24);assert.equal($('count').textContent,'25');
+ $('clear').onclick();assert.equal($('matching-photos').hidden,true);assert.equal($('matching-grid').children.length,0);
+ $('sample').onclick();assert.equal($('matching-photos').hidden,true);assert.match($('chart-help').textContent,/no associated photographs/);$('clear').onclick();
+});
+test('Photo Stats HTML exposes real gallery hooks and the shared upload class',async()=>{
+ const {readFile}=await import('node:fs/promises');const html=await readFile(new URL('../photo-stats/index.html',import.meta.url),'utf8');
+ for(const id of ['matching-photos','photo-metric','photo-value','matching-grid','matching-count','matching-prev','matching-next','matching-page'])assert.ok(html.includes('id="'+id+'"'));
+ assert.match(html,/id="dropzone" class="drop"/);assert.match(html,/class="cross"/);assert.ok(html.indexOf('id="charts"')<html.indexOf('id="matching-photos"'));assert.ok(html.includes('id="back-to-charts"'));
+});
+test('thumbnail previews are released on clear and unfinished previews cannot reappear',async()=>{
+ const nativeCreate=URL.createObjectURL,nativeRevoke=URL.revokeObjectURL,create=document.createElement,active=new Set();let finish;
+ URL.createObjectURL=value=>{const url=nativeCreate(value);active.add(url);return url;};URL.revokeObjectURL=url=>{active.delete(url);nativeRevoke(url);};
+ globalThis.Image=class{naturalWidth=200;naturalHeight=100;decode(){return Promise.resolve();}};
+ document.createElement=tag=>tag==='canvas'?{getContext(){return {drawImage(){}};},toBlob(cb){finish=cb;}}:element();
+ try{
+  $('files').files=[new File([jpeg],'preview.jpg',{type:'image/jpeg'})];await $('files').onchange();const chart=$('charts').children[6];chart.children.find(n=>n.className==='rank-chart').children[0].onclick();
+  for(let i=0;i<10&&!finish;i++)await new Promise(r=>setTimeout(r,0));assert.ok(finish);assert.equal(active.size,1);
+  $('clear').onclick();finish(new Blob(['thumbnail'],{type:'image/jpeg'}));await new Promise(r=>setTimeout(r,0));assert.equal(active.size,0);assert.equal($('matching-grid').children.length,0);
+ }finally{URL.createObjectURL=nativeCreate;URL.revokeObjectURL=nativeRevoke;document.createElement=create;delete globalThis.Image;}
+});
+
+test('charts remain the main view; matching photos open on a result click and close without removing charts',async()=>{
+ $('files').files=[file('one.jpg')];await $('files').onchange();assert.equal($('charts').children.length,9);assert.equal($('matching-photos').hidden,true);assert.equal($('matching-grid').children.length,0);
+ const chart=$('charts').children[6],graph=chart.children.find(n=>n.className==='rank-chart');graph.children[0].onclick();assert.equal($('matching-photos').hidden,false);assert.equal($('charts').children.length,9);assert.equal($('matching-grid').children.length,1);
+ $('back-to-charts').onclick();assert.equal($('matching-photos').hidden,true);assert.equal($('matching-grid').children.length,0);assert.equal($('charts').children.length,9);$('clear').onclick();
+});
