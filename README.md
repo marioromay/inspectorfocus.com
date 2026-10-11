@@ -6,7 +6,13 @@ Seven tools: EXIF Data with metadata removal, Photo Stats with camera/lens donut
 
 ## Development
 
-Use Node 20 or newer. Run `npm start` to serve locally and `npm test` for checks. The server entrypoint is `app.mjs`; the browser EXIF controller is `exif-app.mjs`. Public files are at the repository root. No runtime dependencies or build step are required.
+Use Node 20 or newer. Run `npm start` to serve locally and `npm test` for checks. The server entrypoint is `app.mjs`; the browser EXIF controller is `exif-app.mjs`. Public files are at the repository root. The Node server requires no runtime dependencies.
+
+## Cloudflare Workers static hosting
+
+Run `npm run build` to recreate `dist/` from the Node server's public file allowlist. It preserves public paths and file bytes, including browser modules, brand assets, decoder/license, robots.txt and sitemap.xml. Server code, package files, tests, scripts, documentation and node_modules are excluded. Generated `dist/` and Wrangler state are ignored by Git.
+
+In Cloudflare Workers Builds, set the build command to `npm run build` and deploy command to `npx wrangler deploy`. `wrangler.jsonc` configures `inspectorfocus-com` with only `./dist` as its assets directory. Folder pages retain trailing-slash URLs and unmatched paths return genuine 404s; there is no SPA fallback or Worker server entrypoint. `npm run deploy` builds and deploys from a local checkout. Keep the existing Node entrypoint for Hostinger/local use. No DNS or domain migration is performed by this configuration change.
 
 ## Project notes
 

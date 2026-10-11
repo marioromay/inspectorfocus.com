@@ -1,7 +1,8 @@
 import {readFileSync,readdirSync,existsSync} from 'node:fs';
 import {join,relative} from 'node:path';
 export function checkSEO(root){
- const origin='https://inspectorfocus.com',canonical=[],walk=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(join(dir,e.name)):[join(dir,e.name)]);
+ const ignored=new Set(['dist','node_modules','.git','.wrangler']);
+ const origin='https://inspectorfocus.com',canonical=[],walk=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?(ignored.has(e.name)?[]:walk(join(dir,e.name))):[join(dir,e.name)]);
  const fail=s=>{throw Error(s);};
  const decode=s=>s.replace(/&amp;/g,'&').replace(/&quot;/g,'"').replace(/&#x27;/g,"'");
  const image=readFileSync(join(root,'brand/inspector-focus-social.png'));if(image.readUInt32BE(16)!==1200||image.readUInt32BE(20)!==630)fail('Social PNG must be 1200 × 630');
