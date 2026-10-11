@@ -58,7 +58,7 @@ async function create(){
     if(run!==generation)return;
     outputURL=URL.createObjectURL(blob);$('photo').src=outputURL;$('preview-label').textContent='Export preview';
     const filename=exportFilename(current.file.name,d.width,d.height);
-    $('download').href=outputURL;$('download').download=filename;$('download').hidden=false;
+    $('download').href=outputURL;$('download').download=filename;$('download').hidden=false;globalThis.processingProgress?.ready?.({title:'Your file is ready',detail:'Download your copy. Your originals stay unchanged.',download:{href:$('download').href,name:$('download').download,label:'Download file ↘'}});
     $('export-facts').textContent=d.width.toLocaleString()+' × '+d.height.toLocaleString()+' px · JPEG · '+size(blob.size);
     $('export-name').textContent=filename;$('result').hidden=false;
     const difference=(1-blob.size/current.file.size)*100;

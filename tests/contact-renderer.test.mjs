@@ -12,3 +12,9 @@ test('blank optional title keeps both logos without printing a wordmark or place
  await drawContactPage({getContext:()=>ctx},[],0,layout,()=>true,async()=>({width:600,height:400}));
  assert.equal(layout.top,104);assert.ok(!text.includes('Chicago'));assert.ok(!text.includes('INSPECTOR'));assert.ok(!text.includes('FOCUS'));assert.equal(images.length,2);assert.ok(images[0][2]<94);assert.ok(images[1][2]>layout.height-34);assert.equal(layoutSheet({title:'My shoot'}).top,layout.top);
 });
+
+test('optional author is centered in the footer without changing page capacity',async()=>{
+ const layout=layoutSheet({author:'Mario Romay'}),text=[],ctx={scale(){},fillRect(){},drawImage(){},fillText(t,x,y){text.push({t,x,y,align:this.textAlign});},beginPath(){},moveTo(){},lineTo(){},stroke(){},measureText(t){return {width:t.length*4};}};
+ await drawContactPage({getContext:()=>ctx},[],0,layout,()=>true,async()=>({width:600,height:400}));
+ const credit=text.find(p=>p.t==='Photographs by Mario Romay');assert.ok(credit);assert.equal(credit.x,layout.width/2);assert.equal(credit.align,'center');assert.equal(layout.capacity,layoutSheet().capacity);assert.equal(layoutSheet({author:'bad\nname\u0000'}).author,'bad name');
+});

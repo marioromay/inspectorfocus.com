@@ -129,3 +129,4 @@ footer{padding:22px 0 28px;border-top:1px solid var(--ink);font-size:11px;line-h
 .contact-controls #shoot-title::placeholder{color:var(--muted);opacity:1}
 
 @media(max-width:760px){.shell>header nav a{border-bottom:1px solid var(--rule)!important}.shell>header nav a:last-child{border-bottom:0!important}}
+.processing-popup [hidden]{display:none!important}.processing-popup .processing-download{margin-top:20px;background:var(--accent);color:white;min-height:48px;display:block;text-align:center;font-weight:700;text-decoration:none;cursor:pointer}.processing-popup .processing-preview{display:block;text-align:center;padding:12px;margin-top:10px;border:1px solid var(--rule);color:var(--ink);text-decoration:none}.processing-popup .processing-close{margin-top:12px}.processing-popup .processing-download:focus-visible,.processing-popup .processing-preview:focus-visible{outline:2px solid var(--ink);outline-offset:3px}

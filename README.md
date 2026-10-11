@@ -2,7 +2,7 @@
 
 Browser-based photography tools for https://inspectorfocus.com. Photograph processing stays local; originals remain unchanged.
 
-Tools: EXIF Data with metadata removal, Photo Stats, Print Size, Crop / Export with batch ZIP download, and branded Contact Sheet PDFs. Meet Inspector Focus opens the supplied robot comic.
+Seven tools: EXIF Data with metadata removal, Photo Stats, Print Size, Crop & Export with batch ZIP download, Contact Sheet PDFs with author credit and direct arrangement, Batch Rename, and Photo Viewer. Contact Sheet and Photo Viewer share ordered selections. Photo Viewer creates a branded offline ZIP with manual or timed playback and light/dark mode; its separate-tab preview embeds the JPEGs. Export completion popups offer downloading and a separate save tab for embedded tools. Meet Inspector Focus opens the supplied robot comic.
 
 ## Development
 

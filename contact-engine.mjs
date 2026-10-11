@@ -1,5 +1,5 @@
 import {helveticaHex} from './helvetica.mjs?v=c130e049416f';
-export function layoutSheet({paper='letter',orientation='portrait',columns=4,labels=true,numbers=false,title=''}={}){
+export function layoutSheet({paper='letter',orientation='portrait',columns=4,labels=true,numbers=false,title='',author=''}={}){
   if(!['letter','a4'].includes(paper)||!['portrait','landscape'].includes(orientation)||![2,3,4,5,6].includes(Number(columns)))throw Error('Invalid page settings.');
   let [width,height]=paper==='a4'?[595.28,841.89]:[612,792];
   if(orientation==='landscape')[width,height]=[height,width];
@@ -7,7 +7,7 @@ export function layoutSheet({paper='letter',orientation='portrait',columns=4,lab
   const cellWidth=(width-2*margin-gap*(columns-1))/columns;
   const rows=Math.max(1,Math.floor((height-top-bottom+gap)/(cellWidth*.78+labelHeight+numberHeight+gap)));
   const cellHeight=(height-top-bottom-gap*(rows-1))/rows;
-  return {width,height,margin,gap,top,columns,rows,capacity:columns*rows,cellWidth,cellHeight,labelHeight,numberHeight,title:shootTitle};
+  return {width,height,margin,gap,top,columns,rows,capacity:columns*rows,cellWidth,cellHeight,labelHeight,numberHeight,title:shootTitle,author:String(author).replace(/[\x00-\x1f\x7f]/g,' ').trim().slice(0,80)};
 }
 export function fitImage(width,height,boxWidth,boxHeight){
   if(![width,height,boxWidth,boxHeight].every(n=>Number.isFinite(n)&&n>0))throw Error('Invalid image dimensions.');

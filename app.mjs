@@ -4,6 +4,16 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 const root=new URL('./',import.meta.url);
 const routes=new Map([
+ ["/viewer-runtime.mjs", "viewer-runtime.mjs"],
+ ["/viewer.css", "viewer.css"],
+ ["/viewer-engine.mjs", "viewer-engine.mjs"],
+ ["/sheet-arrange.mjs", "sheet-arrange.mjs"],
+ ["/save-file.js", "save-file.js"],
+ ["/save-file.html", "save-file.html"],
+ ["/selection-handoff.mjs", "selection-handoff.mjs"],
+ ["/viewer-app.mjs", "viewer-app.mjs"],
+ ["/photo-viewer/index.html", "photo-viewer/index.html"],
+ ["/photo-viewer/", "photo-viewer/index.html"],
  ["/redesign.css", "redesign.css"],
  ["/navigation.js", "navigation.js"],
  [
@@ -303,7 +313,7 @@ const routes=new Map([
   "resize/index.html"
  ]
 ]);
-const directoryRoutes=new Set(["/about", "/batch", "/batch-rename", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
+const directoryRoutes=new Set(["/photo-viewer", "/about", "/batch", "/batch-rename", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
 const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png',txt:'text/plain; charset=utf-8',xml:'application/xml; charset=utf-8'};
 export function makeServer(){return createServer(async(req,res)=>{
  res.setHeader('X-Content-Type-Options','nosniff');

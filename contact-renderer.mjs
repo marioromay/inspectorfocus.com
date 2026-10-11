@@ -1,5 +1,5 @@
 import {helveticaText,helveticaWidth} from './helvetica.mjs?v=c130e049416f';
-import {fitImage} from './contact-engine.mjs?v=727c9defb781';
+import {fitImage} from './contact-engine.mjs?v=744ca703d796';
 const logos=new WeakMap();
 function shortLabel(ctx,text,width){text=helveticaText(text).replace(/[\x00-\x1f\x7f]/g,' ');if(textWidth(ctx,text)<=width)return text;let end=text.length;while(end>0&&textWidth(ctx,text.slice(0,end)+'…')>width)end--;return text.slice(0,end)+'…';}
 function textWidth(ctx,text){return helveticaWidth(text,parseFloat(ctx.font.match(/[\d.]+px/)[0]),ctx.font.startsWith('bold'));}
@@ -32,5 +32,7 @@ export async function drawContactPage(target,ordered,index,layout,active,loadIma
  }
  ctx.beginPath();ctx.moveTo(layout.margin,layout.height-34);ctx.lineTo(layout.width-layout.margin,layout.height-34);ctx.stroke();
  const footerLogo=fitImage(logo.naturalWidth||logo.width,logo.naturalHeight||logo.height,20,20);ctx.drawImage(logo,layout.margin+(20-footerLogo.width)/2,layout.height-31+(20-footerLogo.height)/2,footerLogo.width,footerLogo.height);
- ctx.fillStyle='#555555';ctx.font='7.5px Helvetica';ctx.textAlign='left';text(`${ordered.length} photographs`,layout.margin+28,layout.height-16);ctx.textAlign='center';text('Create your own contact sheet at inspectorfocus.com',layout.width/2,layout.height-16);ctx.textAlign='right';text(`${index+1} / ${Math.ceil(ordered.length/layout.capacity)}`,layout.width-layout.margin,layout.height-16);ctx.textAlign='left';return true;
+ ctx.fillStyle='#555555';ctx.font='7.5px Helvetica';
+ if(layout.author){ctx.textAlign='center';ctx.font='7px Helvetica';text(shortLabel(ctx,'Photographs by '+layout.author,layout.width-2*layout.margin-80),layout.width/2,layout.height-27);ctx.font='7.5px Helvetica';}
+ ctx.textAlign='left';text(`${ordered.length} photographs`,layout.margin+28,layout.height-16);ctx.textAlign='center';text('Create your own contact sheet at inspectorfocus.com',layout.width/2,layout.height-16);ctx.textAlign='right';text(`${index+1} / ${Math.ceil(ordered.length/layout.capacity)}`,layout.width-layout.margin,layout.height-16);ctx.textAlign='left';return true;
 }

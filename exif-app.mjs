@@ -1,4 +1,4 @@
-import {inspectCleanup,resetCleanup} from './exif-cleanup.mjs?v=c69453800cf8';
+import {inspectCleanup,resetCleanup} from './exif-cleanup.mjs?v=c7fa25476188';
 import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=e166893abe22';
 import { inspectJPEG, coordinates } from './exif-reader.mjs?v=3ef6ec3e9ae7';
 const $ = id => document.getElementById(id);
@@ -42,6 +42,7 @@ async function load(file){
     const gps=coordinates(t);$('location').hidden=!data.gps;$('location').open=false;$('coords').textContent=gps?gps.map(n=>n.toFixed(6)).join(', '):'Coordinates were incomplete or could not be read.';
     summary=[t.model||t.make,t.lens,positive(t.focal)?focal:null,positive(t.aperture)?aperture:null,positive(t.exposure)?shutter:null,positive(t.iso)?'ISO '+iso:null].filter(Boolean).join(' · ');$('copy').disabled=!hasSettings;
     message(data.warnings.length?'Some EXIF fields could not be read. Missing values may reflect a reading problem; try the original camera JPEG.':!hasSettings?(data.exif?'This JPEG contains limited EXIF, but no supported camera or exposure settings. ':'No EXIF was found in this JPEG. ')+'Try a JPEG straight from the camera or an export with camera metadata included. Resized or shared copies may omit these details. The tool cannot recover metadata that is absent.':'Inspection complete. A dash means that field is not present in the supported EXIF data. Your original file is unchanged.',data.warnings.length>0);
+    globalThis.processingProgress?.complete?.(task,{title:'Your EXIF results are ready',detail:'View the inspection results. To create a cleaned JPEG, use Remove metadata in the tool.'});
   }catch(error){if(run!==generation)return;reset();message(error.message||'This photograph could not be read.',true);}finally{globalThis.processingProgress?.finish(task);}
 }
 $('photo').onerror=()=>message('Metadata was read, but this browser could not display the JPEG preview.',true);

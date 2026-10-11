@@ -7,7 +7,7 @@ let stats=createStats(),running=false,stop=false,skipped=0,issues=[],sample=fals
 let photos=[],galleryPage=0,galleryEpoch=0,thumbnailURLs=[],thumbnailAbort=null;
 const PAGE_SIZE=24;
 function releaseGallery(){galleryEpoch++;thumbnailAbort?.abort();thumbnailAbort=null;for(const url of thumbnailURLs)URL.revokeObjectURL(url);thumbnailURLs=[];$('matching-grid').replaceChildren();}
-function resetPhotos(){photos=[];galleryPage=0;releaseGallery();$('matching-photos').hidden=true;}
+function resetPhotos(){globalThis.processingProgress?.clearReady?.();if(reportURL)URL.revokeObjectURL(reportURL);reportURL=null;photos=[];galleryPage=0;releaseGallery();$('matching-photos').hidden=true;}
 function photoFilters(){
  $('matching-photos').hidden=true;$('chart-help').textContent=sample?'Sample charts have no associated photographs. Choose your own JPEGs to explore matching photos.':'Click a chart value to see matching photographs.';
  $('photo-metric').replaceChildren(...metrics.map(m=>{const o=node('option',m.title);o.value=m.id;return o;}));$('photo-metric').value='focal';valueOptions(false);
@@ -77,6 +77,7 @@ function render(){
   $('issues').hidden=!issues.length;$('issues-label').textContent=issues.length+' file'+(issues.length===1?'':'s')+' needing attention';$('issues-list').replaceChildren(...issues.map(s=>node('li',s)));
   photoFilters();$('export').disabled=running||!stats.count||sample;$('clear').disabled=running;
 }
+let reportURL=null;function csvDownload(){if(reportURL)URL.revokeObjectURL(reportURL);reportURL=URL.createObjectURL(new Blob(['\ufeff'+exportCSV(stats)],{type:'text/csv;charset=utf-8'}));return {href:reportURL,name:'inspector-focus-photo-stats.csv',label:'Download CSV report ↘'};}
 async function analyze(selection){
   if(running)return;const files=Array.from(selection);$('files').value='';
   if(!files.length)return;
@@ -100,9 +101,10 @@ async function analyze(selection){
       await new Promise(resolve=>setTimeout(resolve,0));
     }
   }finally{
-    globalThis.processingProgress?.finish(task);running=false;$('sample').disabled=false;$('choose').disabled=false;$('choose').textContent='Replace collection';$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
+    running=false;$('sample').disabled=false;$('choose').disabled=false;$('choose').textContent='Replace collection';$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
     const incomplete=stats.partial?stats.partial+' file(s) had unreadable EXIF fields. ':'';
     say((stop?'Stopped. Results cover completed files only. ':'Analysis complete. ')+stats.count.toLocaleString()+' read · '+skipped.toLocaleString()+' skipped. '+incomplete+(stats.count&&!stats.withSettings?'No supported shooting settings were found. Orientation still comes from image dimensions. Try camera originals or exports that retain metadata.':'Percentages exclude missing values.'));
+    if(stats.count)globalThis.processingProgress?.complete?.(task,{title:stop?'Partial photo stats ready':'Your photo stats are ready',detail:'Download the aggregate CSV report or return to explore your results.',download:csvDownload()});globalThis.processingProgress?.finish(task);
   }
 }
 $('choose').onclick=()=>$('files').click();$('files').onchange=()=>analyze($('files').files);
@@ -113,7 +115,7 @@ $('dropzone').addEventListener('drop',e=>{if(!running)analyze(e.dataTransfer.fil
 $('clear').onclick=()=>{if(running)return;resetPhotos();stats=createStats();sample=false;issues=[];skipped=0;$('results').hidden=true;$('choose').textContent='Choose photographs';say('Collection cleared. Choose photographs to begin.');};
 $('export').onclick=()=>{
   if(running||!stats.count||sample)return;
-  const url=URL.createObjectURL(new Blob(['\ufeff'+exportCSV(stats)],{type:'text/csv;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download='inspector-focus-photo-stats.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  const output=csvDownload(),url=output.href,a=document.createElement('a');a.href=url;a.download='inspector-focus-photo-stats.csv';document.body.append(a);a.click();a.remove();globalThis.processingProgress?.ready?.({title:'Your CSV report is ready',detail:'Download the report again or return to your results.',download:output});
   say('Statistics downloaded. The report contains aggregates only, with no filenames or GPS coordinates.');
 };
 

@@ -36,7 +36,7 @@ async function load(file){
     if(url)URL.revokeObjectURL(url);url=pendingURL;pendingURL=null;image={width:preview.naturalWidth,height:preview.naturalHeight};
     $('photo').src=url;$('stage').style.width='min(100%, '+Math.min(650,560*image.width/image.height)+'px)';$('filename').textContent=file.name;
     $('image-facts').textContent=image.width.toLocaleString()+' × '+image.height.toLocaleString()+' pixels · '+(image.width*image.height/1e6).toFixed(2)+' MP · '+(file.size/1024/1024).toFixed(2)+' MB';
-    setCurrentFile(file);$('image-view').hidden=false;$('empty').hidden=true;$('position').value=50;render();say('Print estimates ready. Select a size to preview the crop. Your original file is unchanged.');
+    setCurrentFile(file);$('image-view').hidden=false;$('empty').hidden=true;$('position').value=50;render();globalThis.processingProgress?.complete?.(task,{title:'Your print estimates are ready',detail:'Choose View results to compare print sizes, resolution and framing.'});say('Print estimates ready. Select a size to preview the crop. Your original file is unchanged.');
   }catch(error){if(pendingURL)URL.revokeObjectURL(pendingURL);if(run!==generation)return;say(error.message||'The browser could not open this image. Try a standard JPEG.',true);}finally{globalThis.processingProgress?.finish(task);}
 }
 $('choose').onclick=$('replace').onclick=()=>$('file').click();$('file').onchange=()=>{const file=$('file').files[0];$('file').value='';if(file)return load(file);};$('clear').onclick=clear;
