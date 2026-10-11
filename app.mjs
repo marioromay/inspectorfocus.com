@@ -4,6 +4,9 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 const root=new URL('./',import.meta.url);
 const routes=new Map([
+ ["/footer.js", "footer.js"],
+ ["/brand/shootwalk-mark-black.png", "brand/shootwalk-mark-black.png"],
+ ["/brand/shootwalk-mark-white.png", "brand/shootwalk-mark-white.png"],
  ["/stats-report.mjs", "stats-report.mjs"],
  ["/viewer-runtime.mjs", "viewer-runtime.mjs"],
  ["/viewer.css", "viewer.css"],
