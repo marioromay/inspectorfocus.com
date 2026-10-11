@@ -1,3 +1,4 @@
+import {inspectionReport,reportPDF,reportLogo} from './stats-report.mjs?v=9211e1edb77e';
 import {loadPhotograph} from './image-loader.mjs?v=56a8ebe6d708';
 import {inspectJPEG} from './exif-reader.mjs?v=3ef6ec3e9ae7';
 import {createStats,addPhoto,metrics,entries,label,exportCSV,photoValues,matchingPhotos} from './stats-engine.mjs?v=f8f3eb72c2d1';
@@ -5,10 +6,12 @@ import {leaders,chartValues,donutValues} from './stats-visuals.mjs?v=34a4c3f8137
 const $=id=>document.getElementById(id);
 let stats=createStats(),running=false,stop=false,skipped=0,issues=[],sample=false;
 let photos=[],galleryPage=0,galleryEpoch=0,thumbnailURLs=[],thumbnailAbort=null;
+let pdfURL=null,reportEpoch=0,reportBusy=false,reportJob=0,reportReturnFocus=null,collectionPartial=false;
+function invalidateReport(){reportEpoch++;reportJob++;if(pdfURL)URL.revokeObjectURL(pdfURL);pdfURL=null;reportBusy=false;$('report-download').disabled=false;if($('inspection-report').open)$('inspection-report').close();$('inspection-report').hidden=true;}
 const PAGE_SIZE=24;let appendNext=false,galleryReturnFocus=null;
 function closeGallery(){releaseGallery();$('matching-photos').hidden=true;if($('matching-photos').open)$('matching-photos').close();galleryReturnFocus?.focus?.({preventScroll:true});galleryReturnFocus=null;}
 function releaseGallery(){galleryEpoch++;thumbnailAbort?.abort();thumbnailAbort=null;for(const url of thumbnailURLs)URL.revokeObjectURL(url);thumbnailURLs=[];$('matching-grid').replaceChildren();}
-function resetPhotos(){globalThis.processingProgress?.clearReady?.();if(reportURL)URL.revokeObjectURL(reportURL);reportURL=null;photos=[];galleryPage=0;closeGallery();}
+function resetPhotos(){invalidateReport();globalThis.processingProgress?.clearReady?.();if(reportURL)URL.revokeObjectURL(reportURL);reportURL=null;photos=[];galleryPage=0;closeGallery();}
 function photoFilters(){
  $('matching-photos').hidden=true;$('chart-help').textContent=sample?'Sample charts have no associated photographs. Choose your own JPEGs to explore matching photos.':'Select a label or bar to see matching photographs.';
  $('photo-metric').replaceChildren(...metrics.map(m=>{const o=node('option',m.title);o.value=m.id;return o;}));$('photo-metric').value='focal';valueOptions(false);
@@ -89,15 +92,15 @@ function render(){
     for(const v of values){const row=node('tr'),cell=node('td'),button=node('button',v.label,'stat-value');statButton(button,m.id,v);cell.append(button);row.append(cell,node('td',v.count.toLocaleString()),node('td',v.percent.toFixed(1)+'%'));tbody.append(row);}table.append(tbody);details.append(node('summary','View exact values'),table);section.append(details,node('p',m.note,'chart-note'));$('charts').append(section);
   }
   $('issues').hidden=!issues.length;$('issues-label').textContent=issues.length+' file'+(issues.length===1?'':'s')+' needing attention';$('issues-list').replaceChildren(...issues.map(s=>node('li',s)));
-  photoFilters();$('export').disabled=running||!stats.count||sample;$('clear').disabled=running;
+  photoFilters();$('export').disabled=running||!stats.count||sample;$('open-report').disabled=running||!stats.count||sample;$('clear').disabled=running;
 }
 let reportURL=null;function csvDownload(){if(reportURL)URL.revokeObjectURL(reportURL);reportURL=URL.createObjectURL(new Blob(['\ufeff'+exportCSV(stats)],{type:'text/csv;charset=utf-8'}));return {href:reportURL,name:'inspector-focus-photo-stats.csv',label:'Download CSV report ↘'};}
 async function analyze(selection,{append=false}={}){
   if(running)return;const files=Array.from(selection);$('files').value='';
   if(!files.length)return;
   if(files.length+(append&&!sample?photos.length:0)>2000){say('Choose up to 2,000 photographs per collection. Your current results are unchanged.',true);return;}
-  append=append&&!sample;if(!append){resetPhotos();stats=createStats();skipped=0;issues=[];}else{closeGallery();if(reportURL)URL.revokeObjectURL(reportURL);reportURL=null;}sample=false;stop=false;running=true;$('sample').disabled=true;$('choose').disabled=true;$('processing').hidden=false;$('results').hidden=true;$('issues').open=false;$('progress').max=files.length;$('progress').value=0;
-  $('stats-add').disabled=$('stats-replace').disabled=true;$('export').disabled=true;$('clear').disabled=true;say('Reading files locally. Nothing is uploaded.');
+  append=append&&!sample;if(!append){resetPhotos();stats=createStats();skipped=0;issues=[];}else{invalidateReport();closeGallery();if(reportURL)URL.revokeObjectURL(reportURL);reportURL=null;}sample=false;stop=false;running=true;$('sample').disabled=true;$('choose').disabled=true;$('processing').hidden=false;$('results').hidden=true;$('issues').open=false;$('progress').max=files.length;$('progress').value=0;
+  $('stats-add').disabled=$('stats-replace').disabled=true;$('export').disabled=true;$('open-report').disabled=true;$('clear').disabled=true;say('Reading files locally. Nothing is uploaded.');
   let processed=0;const task=globalThis.processingProgress?.start({title:'Analyzing photo stats',detail:'Reading camera settings…',total:files.length,cancel:()=>{stop=true;},cancelLabel:'Stop after current read'});
   try{
     await globalThis.processingProgress?.paint();for(const file of files){
@@ -108,14 +111,14 @@ async function analyze(selection,{append=false}={}){
         if(!/\.jpe?g$/i.test(file.name)&&file.type!=='image/jpeg')throw new Error('JPEG files only in this version.');
         const data=inspectJPEG(await file.arrayBuffer());
         if(stop)break;
-        addPhoto(stats,data,file.size);photos.push({file,values:photoValues(data),pixels:data.width*data.height});if(data.warnings.length)issues.push(file.name+' — Some EXIF fields could not be read.');
+        addPhoto(stats,data,file.size);photos.push({file,values:photoValues(data),pixels:data.width*data.height,width:[5,6,7,8].includes(data.tags.orientation)?data.height:data.width,height:[5,6,7,8].includes(data.tags.orientation)?data.width:data.height});if(data.warnings.length)issues.push(file.name+' — Some EXIF fields could not be read.');
       }catch(error){skipped++;issues.push(file.name+' — '+(error.message||'Could not read this file.'));}
       processed++;$('progress').value=processed;globalThis.processingProgress?.update(task,'Photographs read',processed,files.length);
       // Yield between files to keep Stop and the rest of the page responsive.
       await new Promise(resolve=>setTimeout(resolve,0));
     }
   }finally{
-    running=false;$('sample').disabled=false;$('choose').disabled=false;$('choose').textContent='Replace collection';$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
+    collectionPartial=(append&&collectionPartial)||stop;running=false;$('sample').disabled=false;$('choose').disabled=false;$('choose').textContent='Replace collection';$('processing').hidden=true;$('collection-label').textContent=stop?'Partial collection / Stopped':'Your collection';render();
     const incomplete=stats.partial?stats.partial+' file(s) had unreadable EXIF fields. ':'';
     say((stop?'Stopped. Results cover completed files only. ':'Analysis complete. ')+stats.count.toLocaleString()+' read · '+skipped.toLocaleString()+' skipped. '+incomplete+(stats.count&&!stats.withSettings?'No supported shooting settings were found. Orientation still comes from image dimensions. Try camera originals or exports that retain metadata.':'Percentages exclude missing values.'));
     globalThis.processingProgress?.finish(task,{restoreFocus:false});$('stats-add').disabled=$('stats-replace').disabled=false;$('stats-results-heading').focus?.({preventScroll:true});$('results').scrollIntoView?.({behavior:'auto',block:'start'});
@@ -137,5 +140,30 @@ $('sample').onclick=()=>{
  if(running)return;resetPhotos();stats=createStats();sample=true;skipped=0;issues=[];
  const focal=[24,28,35,35,35,50,50,85],aperture=[2.8,4,5.6,5.6,8,8],hours=[6,7,8,12,15,16,16,16,17,18];
  for(let i=0;i<120;i++){const tags=i%10===0?{}:{focal:focal[i%focal.length],aperture:aperture[i%aperture.length],iso:[100,200,400,400,800][i%5],exposure:[1/1000,1/500,1/250,1/125][i%4],make:'Sample',model:i%3?'Camera A':'Camera B',lens:i%3?'35 mm prime (sample)':'Standard zoom (sample)',capture:'2026:10:'+String(1+i%3).padStart(2,'0')+' '+String(hours[i%hours.length]).padStart(2,'0')+':00:00'};addPhoto(stats,{width:i%4?6000:4000,height:i%4?4000:6000,tags,exif:i%10!==0,warnings:[]});}
- $('collection-label').textContent='Sample collection / illustrative data';render();$('stats-results-heading').focus?.({preventScroll:true});$('results').scrollIntoView?.({behavior:'auto',block:'start'});say('Sample charts only — these are illustrative values, not your photographs. Choose photographs to analyze your own collection. CSV export is available for your own results.');
+ $('collection-label').textContent='Sample collection / illustrative data';render();$('stats-results-heading').focus?.({preventScroll:true});$('results').scrollIntoView?.({behavior:'auto',block:'start'});say('Sample charts only — these are illustrative values, not your photographs. Choose photographs to analyze your own collection. PDF and CSV exports are available for your own results.');
 };
+
+function currentReport(){return inspectionReport(stats,photos,{skipped,partial:collectionPartial,title:$('report-title').value,author:$('report-author').value});}
+function closeReport(){if($('inspection-report').open)$('inspection-report').close();$('inspection-report').hidden=true;reportReturnFocus?.focus?.({preventScroll:true});reportReturnFocus=null;}
+$('report-close').onclick=closeReport;$('inspection-report').addEventListener('cancel',e=>{e.preventDefault();closeReport();});
+$('open-report').onclick=()=>{
+ if(running||sample||!stats.count)return;const report=currentReport();reportReturnFocus=document.activeElement;
+ $('inspection-heading').textContent='INSPECTION REPORT';
+ $('report-status').textContent=(report.partial?'Partial collection: completed reads only. ':'')+'Collection-wide report. Chart filters do not change these totals.';
+ $('report-facts').replaceChildren(...report.facts.map(([title,value])=>{const item=node('div');item.append(node('dt',title),node('dd',value));return item;}));
+ $('report-pattern').replaceChildren(...report.insights.map(([title,peak])=>{const item=node('p');item.append(node('strong',title+': '),node('span',peak.values.length?peak.values.join(' / ')+' · '+peak.count+' each · '+peak.percent.toFixed(1)+'% of known'+(peak.values.length>1?' · tied':''):'Not recorded'));return item;}));
+ $('report-message').textContent='Four summary and chart pages, plus exact-value tables where needed. PDF lettering uses Helvetica; unsupported characters are replaced with ?.';
+ $('inspection-report').hidden=false;$('inspection-report').showModal();
+};
+for(const id of ['report-title','report-author','report-paper'])$(id).oninput=()=>{reportEpoch++;if(pdfURL)URL.revokeObjectURL(pdfURL);pdfURL=null;};
+$('report-download').onclick=async()=>{
+ if(running||sample||!stats.count||reportBusy)return;const job=++reportJob,token=reportEpoch,report=currentReport(),paper=$('report-paper').value;reportBusy=true;$('report-download').disabled=true;$('report-message').textContent='Preparing your report locally…';
+ try{
+  const logo=await reportLogo();if(token!==reportEpoch)return;
+  const blob=reportPDF(report,{paper,logo});if(token!==reportEpoch)return;if(pdfURL)URL.revokeObjectURL(pdfURL);pdfURL=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=pdfURL;a.download='inspector-focus-inspection-report.pdf';document.body.append(a);a.click();a.remove();
+  $('report-message').textContent='PDF download requested. No photo filenames or GPS coordinates included.'+(report.unsupported?' Unsupported lettering was replaced with ? in the PDF.':'')+' Titles and photographer credit are included when entered.';
+ }catch(error){if(token===reportEpoch)$('report-message').textContent='Could not create the PDF. '+(error.message||'Please try again.');}
+ finally{if(job===reportJob){reportBusy=false;$('report-download').disabled=false;if(token!==reportEpoch)$('report-message').textContent='Report options changed. Download again to use the new settings.';}}
+};
+if(typeof window!=='undefined')window.addEventListener('pagehide',()=>{reportEpoch++;if(pdfURL)URL.revokeObjectURL(pdfURL);});

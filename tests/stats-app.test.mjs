@@ -68,3 +68,20 @@ test('analysis brings compact results into focus; Add keeps the collection and R
 test('hybrid puts camera and lens shares first and retains ordered settings bars',()=>{
  $('sample').onclick();const charts=$('charts').children;for(const i of [0,1]){const graph=charts[i].children.find(n=>n.className==='donut-chart');assert.ok(graph);assert.ok(graph.children[1].children.length>0);assert.ok(graph.children[1].children.every(n=>n.disabled));}assert.ok(charts[2].children.some(n=>n.className==='rank-chart'));assert.ok(charts[5].children.some(n=>n.className==='column-chart hourly-chart'));$('clear').onclick();
 });
+
+test('inspection report uses the real HTML controls, rejects sample exports and invalidates on collection changes',async()=>{
+ const {readFile}=await import('node:fs/promises');const html=await readFile(new URL('../photo-stats/index.html',import.meta.url),'utf8');for(const id of ['inspection-report','inspection-heading','open-report','report-facts','report-pattern','report-title','report-author','report-paper','report-download','report-close','report-message','report-status'])assert.ok(html.includes('id="'+id+'"'));
+ $('sample').onclick();assert.equal($('open-report').disabled,true);$('open-report').onclick();assert.equal($('inspection-report').open,false);
+ $('stats-replace').onclick();$('files').files=[file('repeated.jpg'),file('repeated.jpg')];await $('files').onchange();assert.equal($('open-report').disabled,false);$('open-report').onclick();assert.equal($('inspection-report').open,true);assert.equal($('report-facts').children[7].children[1].textContent,'1 names / 1 extra occurrences');$('stats-add').onclick();$('files').files=[file('other.jpg')];await $('files').onchange();assert.equal($('inspection-report').open,false);$('open-report').onclick();assert.match($('report-facts').children[0].children[1].textContent,/3/);$('clear').onclick();assert.equal($('inspection-report').open,false);
+});
+
+test('PDF downloads locally; collection replacement during logo preparation cannot download a stale report',async()=>{
+ const create=document.createElement,active=new Set(),nativeCreate=URL.createObjectURL,nativeRevoke=URL.revokeObjectURL;let downloads=0,pending=null;
+ URL.createObjectURL=value=>{const url=nativeCreate(value);active.add(url);return url;};URL.revokeObjectURL=url=>{active.delete(url);nativeRevoke(url);};
+ globalThis.Image=class{naturalWidth=240;naturalHeight=240;decode(){return pending?new Promise(r=>{pending=r;}):Promise.resolve();}};
+ document.createElement=tag=>tag==='canvas'?{getContext(){return {fillRect(){},drawImage(){}};},toBlob(cb){cb(new Blob(['logo'],{type:'image/jpeg'}));}}:tag==='a'?{...element(),click(){downloads++;}}:element();
+ try{
+  $('files').files=[file()];await $('files').onchange();$('report-paper').value='letter';$('open-report').onclick();await $('report-download').onclick();assert.equal(downloads,1);assert.equal(active.size,1);assert.match($('report-message').textContent,/PDF download requested/);
+  pending=true;const task=$('report-download').onclick();assert.equal(typeof pending,'function');const resume=pending;$('clear').onclick();resume();await task;assert.equal(downloads,1);assert.equal(active.size,0);assert.equal($('inspection-report').open,false);
+ }finally{URL.createObjectURL=nativeCreate;URL.revokeObjectURL=nativeRevoke;document.createElement=create;delete globalThis.Image;}
+});
