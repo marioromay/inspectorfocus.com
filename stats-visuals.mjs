@@ -9,3 +9,10 @@ export function chartValues(stats,id){
  const max=Math.max(0,...values.map(([,count])=>count));
  return values.map(([key,count])=>({key,label:label(id,key),count,percent:g.known?count/g.known*100:0,height:max?count/max*100:0,leading:count>0&&count===max}));
 }
+
+export function donutValues(stats,id,limit=5){
+ const values=chartValues(stats,id).sort((a,b)=>b.count-a.count);
+ if(values.length<=limit)return values;
+ const members=values.slice(limit),count=members.reduce((sum,v)=>sum+v.count,0),known=stats.groups[id].known;
+ return [...values.slice(0,limit),{key:null,label:'Other',count,percent:known?count/known*100:0,leading:false,members}];
+}

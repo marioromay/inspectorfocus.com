@@ -2,9 +2,9 @@ globalThis.processingProgress={start:()=>1,update(){},finish(){},paint:async()=>
 import test from 'node:test';
 import assert from 'node:assert/strict';
 // Lightweight DOM harness for batch controls; visual browser QA is separate.
-function element(){return {textContent:'',value:'',hidden:true,disabled:false,open:false,style:{},children:[],handlers:{},classList:{toggle(){},add(){},remove(){}},append(...nodes){this.children.push(...nodes);},replaceChildren(...nodes){this.children=nodes;},setAttribute(){},addEventListener(type,fn){this.handlers[type]=fn;},click(){},remove(){}};}
+function element(){return {textContent:'',value:'',hidden:true,disabled:false,open:false,showModal(){this.open=true;},close(){this.open=false;},focus(){this.focused=true;},scrollIntoView(){this.scrolled=true;},style:{},children:[],handlers:{},classList:{toggle(){},add(){},remove(){}},append(...nodes){this.children.push(...nodes);},replaceChildren(...nodes){this.children=nodes;},setAttribute(){},addEventListener(type,fn){this.handlers[type]=fn;},click(){},remove(){}};}
 const elements=new Map();
-globalThis.document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element,body:element()};
+globalThis.document={getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element,createElementNS:element,body:element()};
 await import('../stats-app.mjs');
 const $=id=>document.getElementById(id);
 const jpeg=new Uint8Array([255,216,255,192,0,11,8,0,100,0,200,1,1,17,0,255,217]);
@@ -55,4 +55,16 @@ test('charts remain the main view; matching photos open on a result click and cl
  $('files').files=[file('one.jpg')];await $('files').onchange();assert.equal($('charts').children.length,9);assert.equal($('matching-photos').hidden,true);assert.equal($('matching-grid').children.length,0);
  const chart=$('charts').children[6],graph=chart.children.find(n=>n.className==='rank-chart');graph.children[0].onclick();assert.equal($('matching-photos').hidden,false);assert.equal($('charts').children.length,9);assert.equal($('matching-grid').children.length,1);
  $('back-to-charts').onclick();assert.equal($('matching-photos').hidden,true);assert.equal($('matching-grid').children.length,0);assert.equal($('charts').children.length,9);$('clear').onclick();
+});
+
+test('analysis brings compact results into focus; Add keeps the collection and Replace starts a new one',async()=>{
+ $('clear').onclick();$('files').files=[file('one.jpg')];await $('files').onchange();assert.equal($('stats-upload').hidden,true);assert.equal($('stats-sample').hidden,true);assert.equal($('stats-results-heading').focused,true);assert.equal($('results').scrolled,true);assert.match($('collection-summary').textContent,/1 photograph analyzed/);
+ $('stats-add').onclick();$('files').files=[file('two.jpg')];await $('files').onchange();assert.equal($('count').textContent,'2');
+ $('stats-replace').onclick();$('files').files=[file('three.jpg')];await $('files').onchange();assert.equal($('count').textContent,'1');
+ const graph=$('charts').children[6].children.find(n=>n.className==='rank-chart');graph.children[0].onclick();assert.equal($('matching-photos').open,true);$('back-to-charts').onclick();assert.equal($('matching-photos').open,false);assert.equal($('matching-grid').children.length,0);
+ $('clear').onclick();assert.equal($('stats-upload').hidden,false);assert.equal($('stats-sample').hidden,false);
+});
+
+test('hybrid puts camera and lens shares first and retains ordered settings bars',()=>{
+ $('sample').onclick();const charts=$('charts').children;for(const i of [0,1]){const graph=charts[i].children.find(n=>n.className==='donut-chart');assert.ok(graph);assert.ok(graph.children[1].children.length>0);assert.ok(graph.children[1].children.every(n=>n.disabled));}assert.ok(charts[2].children.some(n=>n.className==='rank-chart'));assert.ok(charts[5].children.some(n=>n.className==='column-chart hourly-chart'));$('clear').onclick();
 });

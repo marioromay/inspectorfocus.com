@@ -10,9 +10,9 @@ test('book starts on first full photograph, turns manually and by swipe, honors 
 });
 test('autoplay waits for image load, advances at chosen interval, stops at end and cleans timers',()=>{
  const originalSet=globalThis.setTimeout,originalClear=globalThis.clearTimeout,timers=new Map();let serial=0;globalThis.setTimeout=(fn,delay)=>{const id=++serial;timers.set(id,{fn,delay});return id;};globalThis.clearTimeout=id=>timers.delete(id);
- try{const x=setup(),play=x.buttons[1];play.onclick();assert.equal(timers.size,0);x.image.onload();assert.equal([...timers.values()][0].delay,10000);
- const tick=()=>{const [id,t]=[...timers][0];timers.delete(id);t.fn();};tick();assert.equal(x.image.src,photos[1].url);assert.equal(timers.size,0);x.image.onload();tick();assert.equal(x.image.src,photos[2].url);x.image.onload();tick();assert.equal(play.textContent,'Play');assert.equal(timers.size,0);
- const loop=x.root.querySelectorAll('input')[0];loop.checked=true;loop.onchange();play.onclick();x.image.onload();tick();assert.equal(x.image.src,photos[0].url);x.image.onload();x.document.hidden=true;[...x.events.get('visibilitychange')][0]();assert.equal(play.textContent,'Play');assert.equal(timers.size,0);x.document.hidden=false;play.onclick();x.image.onload();assert.equal(timers.size,1);x.dispose();assert.equal(timers.size,0);
+ try{const x=setup(),play=x.buttons[1];play.onclick();assert.equal([...timers.values()].filter(t=>t.delay===10000).length,0);x.image.onload();assert.equal([...timers.values()].filter(t=>t.delay===10000).length,1);
+ const tick=()=>{const [id,t]=[...timers].find(([,t])=>t.delay===10000);timers.delete(id);t.fn();};tick();assert.equal(x.image.src,photos[1].url);assert.equal([...timers.values()].filter(t=>t.delay===10000).length,0);x.image.onload();tick();assert.equal(x.image.src,photos[2].url);x.image.onload();tick();assert.equal(play.textContent,'Play');assert.equal(timers.size,0);
+ const loop=x.root.querySelectorAll('input')[0];loop.checked=true;loop.onchange();play.onclick();x.image.onload();tick();assert.equal(x.image.src,photos[0].url);x.image.onload();x.document.hidden=true;[...x.events.get('visibilitychange')][0]();assert.equal(play.textContent,'Play');assert.equal(timers.size,0);x.document.hidden=false;play.onclick();x.image.onload();assert.equal([...timers.values()].filter(t=>t.delay===10000).length,1);x.dispose();assert.equal(timers.size,0);
  }finally{globalThis.setTimeout=originalSet;globalThis.clearTimeout=originalClear;}
 });
 test('page turn animates in both directions, reduced motion suppresses it and broken images stop playback',()=>{
@@ -22,4 +22,10 @@ test('page turn animates in both directions, reduced motion suppresses it and br
 });
 test('offline HTML packages only photo book runtime, transparent theme-aware logo and page-turn default',()=>{
  const html=offlineHTML(photos,{});assert.ok(!html.includes('viewer-gallery'));assert.ok(!html.includes('showModal'));assert.ok(!html.includes('background:white'));assert.match(html,/data-theme=dark\] .offline-brand img\{filter:invert\(1\)/);assert.equal(viewerSettings().transition,'turn');new Function(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
+});
+
+test('playback controls fade while playing and return on interaction or pause',()=>{
+ const originalSet=globalThis.setTimeout,originalClear=globalThis.clearTimeout,timers=new Map();let serial=0;globalThis.setTimeout=(fn,delay)=>{timers.set(++serial,{fn,delay});return serial;};globalThis.clearTimeout=id=>timers.delete(id);
+ try{const x=setup(),book=x.root.querySelectorAll('.photo-book')[0],play=x.buttons[1];play.onclick();assert.equal(play.attributes['aria-label'],'Pause slideshow');assert.match(play.innerHTML,/<rect/);const [id,idle]=[...timers].find(([,v])=>v.delay===2500);timers.delete(id);idle.fn();assert.equal(book.dataset.controls,'hidden');book.onpointermove();assert.equal(book.dataset.controls,'visible');play.onclick();assert.equal(book.dataset.controls,'visible');assert.equal(play.attributes['aria-label'],'Play slideshow');x.dispose();assert.equal(timers.size,0);
+ }finally{globalThis.setTimeout=originalSet;globalThis.clearTimeout=originalClear;}
 });

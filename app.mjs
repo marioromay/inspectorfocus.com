@@ -8,8 +8,6 @@ const routes=new Map([
  ["/viewer.css", "viewer.css"],
  ["/viewer-engine.mjs", "viewer-engine.mjs"],
  ["/sheet-arrange.mjs", "sheet-arrange.mjs"],
- ["/save-file.js", "save-file.js"],
- ["/save-file.html", "save-file.html"],
  ["/selection-handoff.mjs", "selection-handoff.mjs"],
  ["/viewer-app.mjs", "viewer-app.mjs"],
  ["/photo-viewer/index.html", "photo-viewer/index.html"],
