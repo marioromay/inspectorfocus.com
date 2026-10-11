@@ -1,3 +1,4 @@
+@import url('/ui-prototype.css');
 .home-intro{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(260px,.55fr);gap:clamp(32px,6vw,96px);padding:clamp(46px,7vw,96px) 0 42px;align-items:end;border-bottom:1px solid var(--ink)}
 .home-intro>div{position:relative}.home-intro .eyebrow{display:flex;align-items:center;gap:10px;color:var(--ink)}.home-intro .eyebrow::before{content:'';width:22px;height:2px;background:var(--accent)}
 .home-intro h1{font-size:clamp(64px,8.5vw,128px);line-height:.82;letter-spacing:-.075em;max-width:980px;margin-top:22px;text-transform:uppercase;font-weight:800}
