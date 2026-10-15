@@ -20,7 +20,7 @@ The processing popup uses the same floating logo with a subtle shadow. Motion sh
 
 The robot’s story lives at /about/ and displays the supplied comic artwork. Clicking the artwork opens the full-size image. Keep meaningful alternative text. Remove the “Read the comic text” section.
 
-The footer link is **Meet Phopod**, not “About Phopod.” Keep **Site by Mario Romay** linked to https://marioromay.com and the ShootWalk referral linked to https://shootwalk.com.
+The footer link is **Meet Phopod**, not “About Phopod.” Keep **Site by Mario Romay** linked to https://marioromay.com.
 
 ## Export branding
 

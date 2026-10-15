@@ -19,3 +19,10 @@ test('existing saved shoots, themes and photo handoffs retain their storage iden
  const keys={'before.js':'inspector-focus:shoot:v1','theme.js':'inspector-focus-theme','workspace.mjs':'inspector-focus-transfer','selection-handoff.mjs':'inspector-focus-transfer'};
  for(const [file,key] of Object.entries(keys))assert.ok((await readFile(new URL('../'+file,import.meta.url),'utf8')).includes(key),file);
 });
+
+test('Phopod pages have no ShootWalk referral links',async()=>{
+ for(const file of publicFiles.filter(p=>p.endsWith('.html'))){
+  const s=await readFile(new URL('../'+file,import.meta.url),'utf8');
+  assert.ok(!/href=["']https?:\/\/(?:www\.)?shootwalk\.com/i.test(s),file);
+ }
+});
