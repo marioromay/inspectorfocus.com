@@ -36,3 +36,25 @@ The four-page summary covers collection/metadata totals, equipment, weighted med
 Collection changes revoke old PDF URLs and prevent unfinished exports from downloading stale results. Real interactive browser/mobile PDF download QA remains pending. The production server allowlist includes the report module; the EXIF controller/server naming split is preserved.
 
 PDF presentation refinement: compact white header with the original robot at its native proportions, INSPECTION REPORT, optional collection title, photographer/report date, and a thin red rule. Removed Inspection Complete/Completed Collection; only stopped collections receive a partial note. Every page repeats the footer “Inspection report by Inspector Focus.” and “Get yours at inspectorfocus.com”, linked to the public homepage, with page numbering at right. Logo raster preparation retains up to a 600px edge at quality 98 instead of the former padded 240px square.
+
+## Before, During and After the Shoot — October 15, 2026
+
+Inspector Focus now groups the experience around three stages. The homepage links
+to /before-the-shoot/, /during-the-shoot/ and /after-the-shoot/. The seven existing
+photo tools retain their canonical routes, browser controllers, file handoffs and
+download behavior. After the Shoot links to them in the same tab. The robot comic
+remains available from Meet Inspector Focus.
+
+Before the Shoot adds real place search, device location, destination-time-zone
+sunlight calculations, hourly forecasts, nearby places and editable five-stop walks.
+A shoot can be explicitly saved on this device, deleted or downloaded as a text
+itinerary. Google Maps supplies external walking directions; in-page distances and
+times are rough estimates. During the Shoot is clearly marked coming next.
+
+Location and forecast requests use third-party providers; no photographs are
+requested by the planner. See /credits/ for Photon/OpenStreetMap, Open-Meteo,
+SunCalc and tz-lookup details and licenses. No secrets or new Cloudflare resources
+are needed. ShootWalk remains unchanged; no redirects are added.
+
+Validation: 167 automated tests, 13 canonical-page SEO checks, and the allowlist
+static build passed. Interactive desktop/mobile testing remains pending.

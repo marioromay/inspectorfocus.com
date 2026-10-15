@@ -1,6 +1,7 @@
 import {readFileSync,readdirSync,existsSync} from 'node:fs';
-import {join,relative} from 'node:path';
+import {join,relative,resolve} from 'node:path';
 export function checkSEO(root){
+ root=resolve(root);
  const ignored=new Set(['dist','node_modules','.git','.wrangler']);
  const origin='https://inspectorfocus.com',canonical=[],walk=dir=>readdirSync(dir,{withFileTypes:true}).flatMap(e=>e.isDirectory()?(ignored.has(e.name)?[]:walk(join(dir,e.name))):[join(dir,e.name)]);
  const fail=s=>{throw Error(s);};
@@ -18,7 +19,7 @@ export function checkSEO(root){
   const ld=[...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/gs)];if(ld.length!==1)fail('Missing/duplicate JSON-LD: '+path);
   const graph=JSON.parse(ld[0][1])['@graph'];if(!graph.some(n=>n['@type']==='WebSite')||!graph.some(n=>n['@type']==='Person'&&n.name==='Mario Romay'))fail('Missing truthful site/creator graph: '+path);
   if(graph.some(n=>n.aggregateRating||n.review))fail('Do not fabricate ratings or reviews');
-  if(!['/','/about/'].includes(route)&&!graph.some(n=>n['@type']==='WebApplication'&&n.url===origin+route))fail('Tool schema missing: '+path);
+  if(!['/','/about/','/during-the-shoot/','/after-the-shoot/','/credits/'].includes(route)&&!graph.some(n=>n['@type']==='WebApplication'&&n.url===origin+route))fail('Tool schema missing: '+path);
  }
  const sitemap=readFileSync(join(root,'sitemap.xml'),'utf8'),urls=[...sitemap.matchAll(/<loc>(.*?)<\/loc>/g)].map(m=>m[1]);
  if(JSON.stringify([...canonical].sort())!==JSON.stringify([...urls].sort()))fail('Sitemap must contain all canonical public pages exactly once');

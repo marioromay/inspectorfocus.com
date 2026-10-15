@@ -4,6 +4,25 @@ import {readFile} from 'node:fs/promises';
 import {fileURLToPath} from 'node:url';
 const root=new URL('./',import.meta.url);
 const routes=new Map([
+ ["/before.css", "before.css"],
+ ["/stages.css", "stages.css"],
+ ["/before.js", "before.js"],
+ ["/data.mjs", "data.mjs"],
+ ["/planning.mjs", "planning.mjs"],
+ ["/solar.mjs", "solar.mjs"],
+ ["/vendor/suncalc.mjs", "vendor/suncalc.mjs"],
+ ["/vendor/tz-lookup.mjs", "vendor/tz-lookup.mjs"],
+ ["/vendor/suncalc-LICENSE.txt", "vendor/suncalc-LICENSE.txt"],
+ ["/vendor/tz-lookup-LICENSE.txt", "vendor/tz-lookup-LICENSE.txt"],
+ ["/before-the-shoot/index.html", "before-the-shoot/index.html"],
+ ["/before-the-shoot/", "before-the-shoot/index.html"],
+ ["/during-the-shoot/index.html", "during-the-shoot/index.html"],
+ ["/during-the-shoot/", "during-the-shoot/index.html"],
+ ["/after-the-shoot/index.html", "after-the-shoot/index.html"],
+ ["/after-the-shoot/", "after-the-shoot/index.html"],
+ ["/credits/index.html", "credits/index.html"],
+ ["/credits/", "credits/index.html"],
+ ["/shoot-stages.css", "shoot-stages.css"],
  ["/footer.js", "footer.js"],
  ["/brand/shootwalk-mark-black.png", "brand/shootwalk-mark-black.png"],
  ["/brand/shootwalk-mark-white.png", "brand/shootwalk-mark-white.png"],
@@ -315,7 +334,7 @@ const routes=new Map([
   "resize/index.html"
  ]
 ]);
-const directoryRoutes=new Set(["/photo-viewer", "/about", "/batch", "/batch-rename", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
+const directoryRoutes=new Set(["/before-the-shoot","/during-the-shoot","/after-the-shoot","/credits","/photo-viewer", "/about", "/batch", "/batch-rename", "/batch-resize", "/contact-sheet", "/crop", "/exif", "/export", "/photo-stats", "/print-size", "/privacy", "/remove-metadata", "/resize"]);
 const mime={html:'text/html; charset=utf-8',mjs:'text/javascript; charset=utf-8',js:'text/javascript; charset=utf-8',css:'text/css; charset=utf-8',svg:'image/svg+xml',png:'image/png',txt:'text/plain; charset=utf-8',xml:'application/xml; charset=utf-8'};
 // The static build uses the same public file allowlist as the Node server.
 export const publicFiles=Object.freeze([...new Set(routes.values())]);
