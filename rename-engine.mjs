@@ -1,4 +1,4 @@
-import {orderPhotos} from './photo-order.mjs?v=c605cf6d369d';
+import {orderPhotos} from './photo-order.mjs?v=phopod-20261015';
 export function renamePlan(photos,{prefix='photo',start=1,padding=3,date=false,order='added'}={}){
  if(!Number.isSafeInteger(start)||start<0||start>999999999)throw Error('Starting number must be between 0 and 999999999.');
  if(!Number.isInteger(padding)||padding<1||padding>9)throw Error('Number padding must be between 1 and 9.');

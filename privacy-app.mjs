@@ -1,4 +1,4 @@
-import {privacyReport,removeMetadata} from './privacy-engine.mjs?v=7d29bfbb4b6c';import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=e166893abe22';
+import {privacyReport,removeMetadata} from './privacy-engine.mjs?v=phopod-20261015';import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=phopod-20261015';
 const $=id=>document.getElementById(id);let original=null,report=null,sourceURL=null,outputURL=null,generation=0;
 const say=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 function release(){if(outputURL)URL.revokeObjectURL(outputURL);outputURL=null;$('download').hidden=true;$('download').removeAttribute('href');$('export-facts').textContent='';}

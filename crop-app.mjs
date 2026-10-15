@@ -1,4 +1,4 @@
-import {cropFrame} from './crop-engine.mjs?v=acd48c33910d';import {resizeDimensions,imageFormat,exportFilename,encodeJpeg} from './resize-engine.mjs?v=36ad5239d887';import {setCurrentFile,connectWorkspace,stage} from './workspace.mjs?v=e166893abe22';
+import {cropFrame} from './crop-engine.mjs?v=phopod-20261015';import {resizeDimensions,imageFormat,exportFilename,encodeJpeg} from './resize-engine.mjs?v=phopod-20261015';import {setCurrentFile,connectWorkspace,stage} from './workspace.mjs?v=phopod-20261015';
 const $=id=>document.getElementById(id);let source=null,sourceURL=null,outputURL=null,generation=0,busy=false,drag=null,croppedFile=null;
 const say=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 function invalidate(){croppedFile=null;$('resize-crop').hidden=true;if(outputURL)URL.revokeObjectURL(outputURL);outputURL=null;$('download').hidden=true;$('download').removeAttribute('href');$('export-facts').textContent='';}

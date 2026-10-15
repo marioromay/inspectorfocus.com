@@ -1,10 +1,10 @@
-import {sheetSlots,destinationPosition} from './sheet-arrange.mjs?v=1d0988837b62';
-import {stageSelection,discardSelection,consumeCollection} from './selection-handoff.mjs?v=ac3dd581ff84';
-import {captureDate,orderPhotos,movePhoto} from './photo-order.mjs?v=c605cf6d369d';
-import {helveticaText} from './helvetica.mjs?v=c130e049416f';
-import {loadPhotograph} from './image-loader.mjs?v=306513868313';
-import {drawContactPage} from './contact-renderer.mjs?v=d71e5dadf645';
-import {layoutSheet,fitImage,sortPhotos,makePDF} from './contact-engine.mjs?v=744ca703d796';
+import {sheetSlots,destinationPosition} from './sheet-arrange.mjs?v=phopod-20261015';
+import {stageSelection,discardSelection,consumeCollection} from './selection-handoff.mjs?v=phopod-20261015';
+import {captureDate,orderPhotos,movePhoto} from './photo-order.mjs?v=phopod-20261015';
+import {helveticaText} from './helvetica.mjs?v=phopod-20261015';
+import {loadPhotograph} from './image-loader.mjs?v=phopod-20261015';
+import {drawContactPage} from './contact-renderer.mjs?v=phopod-20261015';
+import {layoutSheet,fitImage,sortPhotos,makePDF} from './contact-engine.mjs?v=phopod-20261015';
 const $=id=>document.getElementById(id),controls=['paper','orientation','columns','order','labels','numbers','shoot-title','author'];
 let decoder=null,handoffBusy=false;
 let selectionIndex=0,selected=null,dragFrom=null,dragTarget=null;
@@ -84,7 +84,7 @@ async function generate(){
  const task=globalThis.processingProgress?.start({title:'Creating contact sheet PDF',detail:'Preparing pages…',total,cancel:clear});
  try{await globalThis.processingProgress?.paint();for(let i=0;i<total;i++){
   message(`Creating PDF page ${i+1} of ${total}…`);globalThis.processingProgress?.update(task,`Creating page ${i+1} of ${total}…`,i,total);if(!await drawPage(canvas,ordered,i,{...layout,renderScale:300/72,pdfText:true},()=>token===epoch))return;const blob=await canvasBlob(canvas);const bytes=new Uint8Array(await blob.arrayBuffer());if(token!==epoch)return;pages.push({width:canvas.width,height:canvas.height,bytes,text:canvas.sheetText});globalThis.processingProgress?.update(task,'Pages created',i+1,total);$('progress').value=i+1;await yieldUI();
- }const pdf=makePDF(pages,layout.width,layout.height);if(token!==epoch)return;pdfURL=URL.createObjectURL(pdf);$('download').href=pdfURL;$('download').download=(layout.title?layout.title.replace(/[\x00-\x1f<>:"/\\|?*]/g,'_').slice(0,80)+'-':'inspector-focus-')+'contact-sheet.pdf';$('download').hidden=false;globalThis.processingProgress?.complete?.(task,{title:'Your contact sheet is ready',detail:'Download your PDF, then open it to review or print.',download:{href:$('download').href,name:$('download').download,label:'Download PDF ↘'}});message(`${total} ${total===1?'page':'pages'} ready · ${(pdf.size/1024/1024).toFixed(1)} MB. Download your contact sheet.${[layout.title,layout.author,...ordered.filter(()=>layout.labelHeight).map(p=>p.name)].some(t=>helveticaText(t)!==t)?' Helvetica replaces unsupported characters with ?.':''}`);
+ }const pdf=makePDF(pages,layout.width,layout.height);if(token!==epoch)return;pdfURL=URL.createObjectURL(pdf);$('download').href=pdfURL;$('download').download=(layout.title?layout.title.replace(/[\x00-\x1f<>:"/\\|?*]/g,'_').slice(0,80)+'-':'phopod-')+'contact-sheet.pdf';$('download').hidden=false;globalThis.processingProgress?.complete?.(task,{title:'Your contact sheet is ready',detail:'Download your PDF, then open it to review or print.',download:{href:$('download').href,name:$('download').download,label:'Download PDF ↘'}});message(`${total} ${total===1?'page':'pages'} ready · ${(pdf.size/1024/1024).toFixed(1)} MB. Download your contact sheet.${[layout.title,layout.author,...ordered.filter(()=>layout.labelHeight).map(p=>p.name)].some(t=>helveticaText(t)!==t)?' Helvetica replaces unsupported characters with ?.':''}`);
  }catch(error){if(token===epoch)message(`PDF could not be created. ${error.message}`,true);}finally{globalThis.processingProgress?.finish(task);canvas.width=canvas.height=1;if(token===epoch){$('progress').hidden=true;lock(false);}}
 }
 function clear(){decoder?.abort();globalThis.processingProgress?.reset();epoch++;previewEpoch++;invalidate();for(const photo of photos)URL.revokeObjectURL(photo.url);photos=[];page=0;selected=null;dragFrom=dragTarget=null;$('files').value='';$('progress').hidden=true;lock(false);void preview();message('Choose photographs to create your contact sheet.');}

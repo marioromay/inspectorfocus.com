@@ -1,8 +1,8 @@
-# Inspector Focus
+# Phopod
 
 Browser-based photography tools for https://inspectorfocus.com. Photograph processing stays local; originals remain unchanged.
 
-Seven tools: EXIF Data with metadata removal, Photo Stats with camera/lens donuts and compact settings bars, Batch Rename, Print Size, Crop & Export with batch ZIP download, Contact Sheet PDFs with author credit and direct arrangement, and Photo Viewer. Contact Sheet and Photo Viewer share ordered selections. Photo Viewer creates a branded offline ZIP with manual or timed playback and light/dark mode; its separate-tab preview embeds the JPEGs. Photo Viewer and Batch Rename retain completion popups with direct ZIP downloads; other tools dismiss progress when finished. Viewer controls use aligned icons, and its photo-book preview uses the offline layout. Meet Inspector Focus opens the supplied robot comic.
+Seven tools: EXIF Data with metadata removal, Photo Stats with camera/lens donuts and compact settings bars, Batch Rename, Print Size, Crop & Export with batch ZIP download, Contact Sheet PDFs with author credit and direct arrangement, and Photo Viewer. Contact Sheet and Photo Viewer share ordered selections. Photo Viewer creates a branded offline ZIP with manual or timed playback and light/dark mode; its separate-tab preview embeds the JPEGs. Photo Viewer and Batch Rename retain completion popups with direct ZIP downloads; other tools dismiss progress when finished. Viewer controls use aligned icons, and its photo-book preview uses the offline layout. Meet Phopod opens the supplied robot comic.
 
 ## Development
 
@@ -35,15 +35,15 @@ The four-page summary covers collection/metadata totals, equipment, weighted med
 
 Collection changes revoke old PDF URLs and prevent unfinished exports from downloading stale results. Real interactive browser/mobile PDF download QA remains pending. The production server allowlist includes the report module; the EXIF controller/server naming split is preserved.
 
-PDF presentation refinement: compact white header with the original robot at its native proportions, INSPECTION REPORT, optional collection title, photographer/report date, and a thin red rule. Removed Inspection Complete/Completed Collection; only stopped collections receive a partial note. Every page repeats the footer “Inspection report by Inspector Focus.” and “Get yours at inspectorfocus.com”, linked to the public homepage, with page numbering at right. Logo raster preparation retains up to a 600px edge at quality 98 instead of the former padded 240px square.
+PDF presentation refinement: compact white header with the original robot at its native proportions, INSPECTION REPORT, optional collection title, photographer/report date, and a thin red rule. Removed Inspection Complete/Completed Collection; only stopped collections receive a partial note. Every page repeats the footer “Inspection report by Phopod.” and “Get yours at inspectorfocus.com”, linked to the public homepage, with page numbering at right. Logo raster preparation retains up to a 600px edge at quality 98 instead of the former padded 240px square.
 
 ## Before, During and After the Shoot — October 15, 2026
 
-Inspector Focus now groups the experience around three stages. The homepage links
+Phopod now groups the experience around three stages. The homepage links
 to /before-the-shoot/, /during-the-shoot/ and /after-the-shoot/. The seven existing
 photo tools retain their canonical routes, browser controllers, file handoffs and
 download behavior. After the Shoot links to them in the same tab. The robot comic
-remains available from Meet Inspector Focus.
+remains available from Meet Phopod.
 
 Before the Shoot adds real place search, device location, destination-time-zone
 sunlight calculations, hourly forecasts, nearby places and editable five-stop walks.
@@ -58,3 +58,11 @@ are needed. ShootWalk remains unchanged; no redirects are added.
 
 Validation: 167 automated tests, 13 canonical-page SEO checks, and the allowlist
 static build passed. Interactive desktop/mobile testing remains pending.
+
+## Phopod naming update
+
+Phopod is the platform and the robot. Visible interface copy, generated-report branding,
+download names, social artwork and the Meet Phopod comic use the new name. The robot
+design is preserved. Meet Phopod remains available in new-page footers on phones.
+Existing domains, repo/Worker identifiers, asset URLs and browser storage keys remain
+compatible; phopod.com is a separately registered destination awaiting domain cutover.

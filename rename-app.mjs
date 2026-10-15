@@ -1,7 +1,7 @@
-import {consumeSelection} from './selection-handoff.mjs?v=ac3dd581ff84';
-import {captureDate} from './photo-order.mjs?v=c605cf6d369d';
-import {renamePlan} from './rename-engine.mjs?v=0ff444f2c1f1';
-import {makeZIP} from './zip-engine.mjs?v=24095449ff98';
+import {consumeSelection} from './selection-handoff.mjs?v=phopod-20261015';
+import {captureDate} from './photo-order.mjs?v=phopod-20261015';
+import {renamePlan} from './rename-engine.mjs?v=phopod-20261015';
+import {makeZIP} from './zip-engine.mjs?v=phopod-20261015';
 const $=id=>document.getElementById(id),controls=['prefix','start','padding','include-date','rename-order'];
 let photos=[],epoch=0,busy=false,downloadURL=null;
 const say=(s,error=false)=>{$('message').textContent=s;$('message').classList.toggle('error',error);};
@@ -15,7 +15,7 @@ async function ingest(files,{transferred=false}={}){if(busy)return;const list=Ar
  if(token!==epoch)return;lock(false);preview();say((transferred?'Your arranged originals arrived in order. Choose a naming pattern, then create your ZIP.':'Review the new filenames, then create your ZIP.')+(skipped?' '+skipped+' unsupported files skipped.':'')+(photos.some(p=>!p.capture)?' Files without a recorded JPEG capture date use “undated” when dates are enabled.':''));
  }catch(error){if(token===epoch){lock(false);say(error.message,true);}}finally{globalThis.processingProgress?.finish(task);$('files').value='';}}
 async function generate(){if(busy||!photos.length)return;const plan=preview();if(!plan)return;const token=++epoch;lock(true);const entries=[],task=globalThis.processingProgress?.start({title:'Creating renamed ZIP',detail:'Copying originals…',total:plan.length,cancel:clear});
- try{await globalThis.processingProgress?.paint();for(const [i,p] of plan.entries()){const bytes=new Uint8Array(await p.file.arrayBuffer());if(token!==epoch)return;entries.push({name:p.newName,bytes});globalThis.processingProgress?.update(task,'Copying '+(i+1)+' of '+plan.length,i+1,plan.length);await new Promise(r=>setTimeout(r,0));}const zip=makeZIP(entries);if(token!==epoch)return;downloadURL=URL.createObjectURL(zip);$('download').href=downloadURL;$('download').download='inspector-focus-renamed.zip';$('download').hidden=false;globalThis.processingProgress?.complete?.(task,{keepOpen:true,title:'Your renamed photos are ready',detail:'Download and extract the ZIP. Your originals are unchanged.',download:{href:$('download').href,name:$('download').download,label:'Download renamed ZIP ↘'}});say(plan.length+' renamed originals ready. Image contents and metadata are preserved.');
+ try{await globalThis.processingProgress?.paint();for(const [i,p] of plan.entries()){const bytes=new Uint8Array(await p.file.arrayBuffer());if(token!==epoch)return;entries.push({name:p.newName,bytes});globalThis.processingProgress?.update(task,'Copying '+(i+1)+' of '+plan.length,i+1,plan.length);await new Promise(r=>setTimeout(r,0));}const zip=makeZIP(entries);if(token!==epoch)return;downloadURL=URL.createObjectURL(zip);$('download').href=downloadURL;$('download').download='phopod-renamed.zip';$('download').hidden=false;globalThis.processingProgress?.complete?.(task,{keepOpen:true,title:'Your renamed photos are ready',detail:'Download and extract the ZIP. Your originals are unchanged.',download:{href:$('download').href,name:$('download').download,label:'Download renamed ZIP ↘'}});say(plan.length+' renamed originals ready. Image contents and metadata are preserved.');
  }catch(error){if(token===epoch)say('ZIP could not be created. '+error.message,true);}finally{globalThis.processingProgress?.finish(task);if(token===epoch)lock(false);}}
 function clear(){epoch++;globalThis.processingProgress?.reset();photos=[];invalidate();lock(false);preview();$('files').value='';say('Choose photographs to preview their new filenames.');}
 $('choose').onclick=$('replace').onclick=()=>$('files').click();$('files').onchange=()=>ingest($('files').files);$('clear').onclick=clear;$('generate').onclick=generate;

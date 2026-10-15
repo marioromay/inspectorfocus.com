@@ -4,3 +4,5 @@
 .live-stops a{font-size:10px;display:inline-flex;align-items:center;min-height:32px;text-underline-offset:3px}.search-row input:focus-visible{outline-offset:-3px}.status{overflow-wrap:anywhere}.weather-metrics{min-height:70px}.live-stops{border-bottom:1px solid var(--rule)}.button-link:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
 
 .meet-focus{color:var(--muted);text-decoration:none;min-height:44px;display:inline-flex;align-items:center}.meet-focus:hover{color:var(--accent)}@media(max-width:760px){.meet-focus{display:none}}
+
+.character-link{display:block;line-height:0;flex-shrink:0}.meet-focus{white-space:nowrap}

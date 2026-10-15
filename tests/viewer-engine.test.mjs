@@ -9,7 +9,7 @@ test('package settings and limits reject bad output and preserve explicit playba
 test('offline viewer has local logo, website links, and working light/dark mode with blocked storage',async()=>{
  const {viewerDOM}=await import('./helpers/viewer-dom.mjs'),dom=viewerDOM(),doc=dom.document;doc.documentElement={dataset:{}};globalThis.matchMedia=()=>({matches:true});globalThis.localStorage={getItem(){throw Error('file storage blocked');},setItem(){throw Error('file storage blocked');}};
  mountOfflineTheme(doc);assert.equal(doc.documentElement.dataset.theme,'dark');dom.$('viewer-theme').onclick();assert.equal(doc.documentElement.dataset.theme,'light');assert.equal(dom.$('viewer-theme').textContent,'Dark mode');dom.$('viewer-theme').onclick();assert.equal(doc.documentElement.dataset.theme,'dark');
- const html=offlineHTML(photos,{});assert.match(html,/src="assets\/inspector-focus.png" alt="Inspector Focus robot"/);assert.match(html,/href="https:\/\/inspectorfocus.com" target="_blank" rel="noopener noreferrer"/);assert.match(html,/id="viewer-theme"/);assert.match(html,/connect-src 'none'/);
+ const html=offlineHTML(photos,{});assert.match(html,/src="assets\/inspector-focus.png" alt="Phopod robot"/);assert.match(html,/href="https:\/\/inspectorfocus.com" target="_blank" rel="noopener noreferrer"/);assert.match(html,/id="viewer-theme"/);assert.match(html,/connect-src 'none'/);
 });
 
 test('separate-tab preview renders every image from embedded bytes without creator blob URLs',async()=>{

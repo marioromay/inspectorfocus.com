@@ -1,5 +1,5 @@
-import {inspectJPEG} from './exif-reader.mjs?v=3ef6ec3e9ae7';
-import {recordedDate} from './stats-engine.mjs?v=f8f3eb72c2d1';
+import {inspectJPEG} from './exif-reader.mjs?v=phopod-20261015';
+import {recordedDate} from './stats-engine.mjs?v=phopod-20261015';
 export async function captureDate(file){
  if(!/\.jpe?g$/i.test(file.name)&&file.type!=='image/jpeg')return null;
  try{const raw=inspectJPEG(await file.arrayBuffer()).tags.capture;if(!recordedDate(raw))return null;return raw.slice(0,19).replace(/:/g,'-').replace(' ','T');}catch{return null;}

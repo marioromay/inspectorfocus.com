@@ -1,8 +1,8 @@
-import {inspectionReport,reportPDF,reportLogo} from './stats-report.mjs?v=9211e1edb77e';
-import {loadPhotograph} from './image-loader.mjs?v=56a8ebe6d708';
-import {inspectJPEG} from './exif-reader.mjs?v=3ef6ec3e9ae7';
-import {createStats,addPhoto,metrics,entries,label,exportCSV,photoValues,matchingPhotos} from './stats-engine.mjs?v=f8f3eb72c2d1';
-import {leaders,chartValues,donutValues} from './stats-visuals.mjs?v=34a4c3f81377';
+import {inspectionReport,reportPDF,reportLogo} from './stats-report.mjs?v=phopod-20261015';
+import {loadPhotograph} from './image-loader.mjs?v=phopod-20261015';
+import {inspectJPEG} from './exif-reader.mjs?v=phopod-20261015';
+import {createStats,addPhoto,metrics,entries,label,exportCSV,photoValues,matchingPhotos} from './stats-engine.mjs?v=phopod-20261015';
+import {leaders,chartValues,donutValues} from './stats-visuals.mjs?v=phopod-20261015';
 const $=id=>document.getElementById(id);
 let stats=createStats(),running=false,stop=false,skipped=0,issues=[],sample=false;
 let photos=[],galleryPage=0,galleryEpoch=0,thumbnailURLs=[],thumbnailAbort=null;
@@ -94,7 +94,7 @@ function render(){
   $('issues').hidden=!issues.length;$('issues-label').textContent=issues.length+' file'+(issues.length===1?'':'s')+' needing attention';$('issues-list').replaceChildren(...issues.map(s=>node('li',s)));
   photoFilters();$('export').disabled=running||!stats.count||sample;$('open-report').disabled=running||!stats.count||sample;$('clear').disabled=running;
 }
-let reportURL=null;function csvDownload(){if(reportURL)URL.revokeObjectURL(reportURL);reportURL=URL.createObjectURL(new Blob(['\ufeff'+exportCSV(stats)],{type:'text/csv;charset=utf-8'}));return {href:reportURL,name:'inspector-focus-photo-stats.csv',label:'Download CSV report ↘'};}
+let reportURL=null;function csvDownload(){if(reportURL)URL.revokeObjectURL(reportURL);reportURL=URL.createObjectURL(new Blob(['\ufeff'+exportCSV(stats)],{type:'text/csv;charset=utf-8'}));return {href:reportURL,name:'phopod-photo-stats.csv',label:'Download CSV report ↘'};}
 async function analyze(selection,{append=false}={}){
   if(running)return;const files=Array.from(selection);$('files').value='';
   if(!files.length)return;
@@ -132,7 +132,7 @@ $('dropzone').addEventListener('drop',e=>{if(!running)analyze(e.dataTransfer.fil
 $('clear').onclick=()=>{if(running)return;resetPhotos();stats=createStats();sample=false;issues=[];skipped=0;$('results').hidden=true;$('stats-upload').hidden=false;$('stats-sample').hidden=false;$('choose').textContent='Choose photographs';say('Collection cleared. Choose photographs to begin.');};
 $('export').onclick=()=>{
   if(running||!stats.count||sample)return;
-  const output=csvDownload(),url=output.href,a=document.createElement('a');a.href=url;a.download='inspector-focus-photo-stats.csv';document.body.append(a);a.click();a.remove();
+  const output=csvDownload(),url=output.href,a=document.createElement('a');a.href=url;a.download='phopod-photo-stats.csv';document.body.append(a);a.click();a.remove();
   say('CSV download requested. The report contains aggregates only, with no filenames or GPS coordinates.');
 };
 
@@ -161,7 +161,7 @@ $('report-download').onclick=async()=>{
  try{
   const logo=await reportLogo();if(token!==reportEpoch)return;
   const blob=reportPDF(report,{paper,logo});if(token!==reportEpoch)return;if(pdfURL)URL.revokeObjectURL(pdfURL);pdfURL=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=pdfURL;a.download='inspector-focus-inspection-report.pdf';document.body.append(a);a.click();a.remove();
+  const a=document.createElement('a');a.href=pdfURL;a.download='phopod-inspection-report.pdf';document.body.append(a);a.click();a.remove();
   $('report-message').textContent='PDF download requested. No photo filenames or GPS coordinates included.'+(report.unsupported?' Unsupported lettering was replaced with ? in the PDF.':'')+' Titles and photographer credit are included when entered.';
  }catch(error){if(token===reportEpoch)$('report-message').textContent='Could not create the PDF. '+(error.message||'Please try again.');}
  finally{if(job===reportJob){reportBusy=false;$('report-download').disabled=false;if(token!==reportEpoch)$('report-message').textContent='Report options changed. Download again to use the new settings.';}}

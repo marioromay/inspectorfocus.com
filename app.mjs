@@ -351,5 +351,5 @@ export function makeServer(){return createServer(async(req,res)=>{
 if(process.argv[1]&&fileURLToPath(import.meta.url)===process.argv[1]){
  const port=Number(process.env.PORT||3000);
  if(!Number.isInteger(port)||port<1||port>65535)throw new Error('Invalid PORT');
- makeServer().listen(port,'0.0.0.0',()=>console.log('Inspector Focus listening on port '+port));
+ makeServer().listen(port,'0.0.0.0',()=>console.log('Phopod listening on port '+port));
 }

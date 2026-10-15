@@ -1,4 +1,4 @@
-import {helveticaHex} from './helvetica.mjs?v=c130e049416f';
+import {helveticaHex} from './helvetica.mjs?v=phopod-20261015';
 export function layoutSheet({paper='letter',orientation='portrait',columns=4,labels=true,numbers=false,title='',author=''}={}){
   if(!['letter','a4'].includes(paper)||!['portrait','landscape'].includes(orientation)||![2,3,4,5,6].includes(Number(columns)))throw Error('Invalid page settings.');
   let [width,height]=paper==='a4'?[595.28,841.89]:[612,792];
@@ -21,7 +21,7 @@ export function makePDF(pages,width,height){
   const enc=new TextEncoder(),chunks=[],offsets=[0],fontRegular=3+pages.length*3,fontBold=fontRegular+1;let length=0;
   const append=value=>{const bytes=typeof value==='string'?enc.encode(value):value;chunks.push(bytes);length+=bytes.length;};
   const obj=(id,body)=>{offsets[id]=length;append(`${id} 0 obj\n`);append(body);append('\nendobj\n');};
-  append('%PDF-1.4\n% Inspector Focus\n');
+  append('%PDF-1.4\n% Phopod\n');
   obj(1,'<< /Type /Catalog /Pages 2 0 R >>');
   obj(2,`<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_,i)=>`${3+i*3} 0 R`).join(' ')}] >>`);
   for(let i=0;i<pages.length;i++){

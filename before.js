@@ -1,5 +1,5 @@
-import {coordinates,localDay,validDay,dayDiff,shootingWindow,forecastAt,weatherName,localParts,localInstant,localTime,solarAt,distance,routeMetrics,directions,validSaved} from './planning.mjs?v=d6e2ff9adce6';
-import {searchLocations,forecast,nearby} from './data.mjs?v=5cad6f3a4cdd';
+import {coordinates,localDay,validDay,dayDiff,shootingWindow,forecastAt,weatherName,localParts,localInstant,localTime,solarAt,distance,routeMetrics,directions,validSaved} from './planning.mjs?v=phopod-20261015';
+import {searchLocations,forecast,nearby} from './data.mjs?v=phopod-20261015';
 const $=s=>document.querySelector(s);
 const key='inspector-focus:shoot:v1';
 const state={location:null,type:'Street',day:'Today',time:'Best Light',date:null,stops:[],forecast:null,window:null,nearby:[],minute:720};
@@ -194,8 +194,8 @@ $('#restore').onclick=()=>{
 let exportURL;
 $('#download').onclick=()=>{
  const w=state.window,m=routeMetrics(state.stops),f=forecastAt(state.forecast,localInstant(state.date,state.minute,state.location.timezone));
- const text=['INSPECTOR FOCUS / BEFORE THE SHOOT',state.location.name,state.date+' / '+state.location.timezone,state.type+' / '+state.time,'',w.label+': '+time(w.start)+'–'+time(w.end),'Sunrise: '+time(w.times.sunrise)+' / Sunset: '+time(w.times.sunset),f?'Forecast at '+time(localInstant(state.date,state.minute,state.location.timezone))+': '+weatherName(f.code)+(f.temperature===null?'':' / '+Math.round(f.temperature)+'°F'):'Forecast unavailable','',...state.stops.map((p,i)=>(i+1)+'. '+p.name+' / '+p.latitude+', '+p.longitude),'','Rough walking estimate: '+(m.estimatedKm/1.609344).toFixed(1)+' mi, '+m.walkMinutes+' min. Straight-line distances with an allowance; actual paths vary.','Walking directions: '+directions(state.stops),'','Sun times are calculated; buildings and terrain can block light. Forecasts can change. Check access and opening hours.','Weather: Open-Meteo. Place data: © OpenStreetMap contributors.','Created with Inspector Focus.'].join('\n');
+ const text=['PHOPOD / BEFORE THE SHOOT',state.location.name,state.date+' / '+state.location.timezone,state.type+' / '+state.time,'',w.label+': '+time(w.start)+'–'+time(w.end),'Sunrise: '+time(w.times.sunrise)+' / Sunset: '+time(w.times.sunset),f?'Forecast at '+time(localInstant(state.date,state.minute,state.location.timezone))+': '+weatherName(f.code)+(f.temperature===null?'':' / '+Math.round(f.temperature)+'°F'):'Forecast unavailable','',...state.stops.map((p,i)=>(i+1)+'. '+p.name+' / '+p.latitude+', '+p.longitude),'','Rough walking estimate: '+(m.estimatedKm/1.609344).toFixed(1)+' mi, '+m.walkMinutes+' min. Straight-line distances with an allowance; actual paths vary.','Walking directions: '+directions(state.stops),'','Sun times are calculated; buildings and terrain can block light. Forecasts can change. Check access and opening hours.','Weather: Open-Meteo. Place data: © OpenStreetMap contributors.','Created with Phopod.'].join('\n');
  if(exportURL)URL.revokeObjectURL(exportURL);exportURL=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));
- const a=el('a');a.href=exportURL;a.download='inspector-focus-shoot-'+state.date+'.txt';document.body.append(a);a.click();a.remove();
+ const a=el('a');a.href=exportURL;a.download='phopod-shoot-'+state.date+'.txt';document.body.append(a);a.click();a.remove();
 };
 window.addEventListener('pagehide',()=>{searchController?.abort();addController?.abort();buildController?.abort();nearbyController?.abort();if(exportURL)URL.revokeObjectURL(exportURL)});

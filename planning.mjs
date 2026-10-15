@@ -1,5 +1,5 @@
-import tzLookup from './vendor/tz-lookup.mjs';
-import {localParts,localInstant,solarAt,localTime} from './solar.mjs?v=55accf0ebc67';
+import tzLookup from './vendor/tz-lookup.mjs?v=phopod-20261015';
+import {localParts,localInstant,solarAt,localTime} from './solar.mjs?v=phopod-20261015';
 export {localParts,localInstant,solarAt,localTime};
 export function coordinates(latitude,longitude,name='Your location'){
  if(!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180)throw Error('Enter valid latitude, longitude.');

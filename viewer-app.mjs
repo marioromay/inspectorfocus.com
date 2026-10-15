@@ -1,10 +1,10 @@
-import {loadPhotograph} from './image-loader.mjs?v=306513868313';
-import {captureDate,orderPhotos,movePhoto} from './photo-order.mjs?v=c605cf6d369d';
-import {fitImage} from './contact-engine.mjs?v=744ca703d796';
-import {stageSelection,discardSelection,consumeCollection} from './selection-handoff.mjs?v=ac3dd581ff84';
-import {viewerSettings,viewerPackage,offlinePreviewHTML,offlineHTML} from './viewer-engine.mjs?v=46de8d8d4db7';
-import {mountViewer,viewerStyles,photoBookStyles} from './viewer-runtime.mjs?v=6deb3e743c9c';
-import {destinationPosition} from './sheet-arrange.mjs?v=1d0988837b62';
+import {loadPhotograph} from './image-loader.mjs?v=phopod-20261015';
+import {captureDate,orderPhotos,movePhoto} from './photo-order.mjs?v=phopod-20261015';
+import {fitImage} from './contact-engine.mjs?v=phopod-20261015';
+import {stageSelection,discardSelection,consumeCollection} from './selection-handoff.mjs?v=phopod-20261015';
+import {viewerSettings,viewerPackage,offlinePreviewHTML,offlineHTML} from './viewer-engine.mjs?v=phopod-20261015';
+import {mountViewer,viewerStyles,photoBookStyles} from './viewer-runtime.mjs?v=phopod-20261015';
+import {destinationPosition} from './sheet-arrange.mjs?v=phopod-20261015';
 const $=id=>document.getElementById(id),settingIds=['viewer-title','viewer-author','viewer-labels','viewer-numbers','viewer-interval','viewer-loop','viewer-transition','viewer-order'];
 let photos=[],index=0,epoch=0,busy=false,decoder=null,zipURL=null,zipBlob=null,offlinePreviewURL=null,dispose=null,selected=null;
 const settings=()=>viewerSettings({title:$('viewer-title').value,author:$('viewer-author').value,labels:$('viewer-labels').checked,numbers:$('viewer-numbers').checked,interval:$('viewer-interval').value,loop:$('viewer-loop').checked,transition:$('viewer-transition').value});
@@ -36,9 +36,9 @@ async function ingest(files,{replace=false}={}){
 }
 async function generate(){if(busy||!photos.length)return;const token=++epoch,list=ordered(),options=settings();invalidate();dispose?.();dispose=null;lock(true);const task=globalThis.processingProgress?.start({title:'Creating offline viewer ZIP',detail:'Packaging review copies…',total:list.length,cancel:clear});
  try{await globalThis.processingProgress?.paint();const copies=[];for(const [i,p] of list.entries()){const bytes=new Uint8Array(await p.blob.arrayBuffer());if(token!==epoch)return;copies.push({...p,bytes});globalThis.processingProgress?.update(task,'Packaging '+(i+1)+' of '+list.length,i+1,list.length);await new Promise(r=>setTimeout(r,0));}
- const response=await fetch('/brand/inspector-focus.png');if(!response.ok)throw Error('Brand image could not be loaded.');const logo=new Uint8Array(await response.arrayBuffer());if(token!==epoch)return;const zip=viewerPackage(copies,options,logo);zipBlob=zip;zipURL=URL.createObjectURL(zip);$('viewer-download').href=zipURL;$('viewer-download').download='inspector-focus-photo-viewer.zip';$('viewer-download').hidden=false;
+ const response=await fetch('/brand/inspector-focus.png');if(!response.ok)throw Error('Brand image could not be loaded.');const logo=new Uint8Array(await response.arrayBuffer());if(token!==epoch)return;const zip=viewerPackage(copies,options,logo);zipBlob=zip;zipURL=URL.createObjectURL(zip);$('viewer-download').href=zipURL;$('viewer-download').download='phopod-photo-viewer.zip';$('viewer-download').hidden=false;
  const previewHTML=offlinePreviewHTML(copies,options,logo);offlinePreviewURL=URL.createObjectURL(new Blob([previewHTML],{type:'text/html'}));
- globalThis.processingProgress?.complete?.(task,{keepOpen:true,title:'Your offline viewer is ready',detail:'1. Download the ZIP. 2. Extract all files. 3. Open index.htm. You can also open the offline preview now.',download:{href:zipURL,blob:zipBlob,name:'inspector-focus-photo-viewer.zip',label:'Download viewer ZIP ↘'},preview:{href:offlinePreviewURL,label:'Open offline preview ↗'}});say(list.length+' review photographs packaged · '+(zip.size/1024/1024).toFixed(1)+' MB. Extract the entire ZIP, then open index.htm.');
+ globalThis.processingProgress?.complete?.(task,{keepOpen:true,title:'Your offline viewer is ready',detail:'1. Download the ZIP. 2. Extract all files. 3. Open index.htm. You can also open the offline preview now.',download:{href:zipURL,blob:zipBlob,name:'phopod-photo-viewer.zip',label:'Download viewer ZIP ↘'},preview:{href:offlinePreviewURL,label:'Open offline preview ↗'}});say(list.length+' review photographs packaged · '+(zip.size/1024/1024).toFixed(1)+' MB. Extract the entire ZIP, then open index.htm.');
  }catch(error){if(token===epoch)say('Viewer ZIP could not be created. '+error.message,true);}finally{globalThis.processingProgress?.finish(task);if(token===epoch){lock(false);render();}}
 }
 function clear(){decoder?.abort();epoch++;globalThis.processingProgress?.reset();dispose?.();dispose=null;for(const p of photos)URL.revokeObjectURL(p.url);photos=[];selected=null;invalidate();$('files').value='';lock(false);render();say('Choose photographs to create an offline gallery and slideshow.');}
@@ -47,7 +47,7 @@ async function toContact(){if(busy||!photos.length)return;const token=epoch;let 
  catch(error){if(ticket)await discardSelection(ticket).catch(()=>{});if(token===epoch)say('Selection could not be transferred. '+error.message+' Your photographs remain here.',true);}finally{if(token===epoch){lock(false);render();}}
 }
 $('choose').onclick=$('viewer-add').onclick=()=>{delete $('files').dataset.replace;$('files').click();};$('viewer-replace').onclick=()=>{ $('files').dataset.replace='true';$('files').click();};$('files').onchange=()=>{const replace=$('files').dataset.replace==='true';delete $('files').dataset.replace;return ingest($('files').files,{replace});};
-$('viewer-download').onclick=e=>{if(!zipBlob||busy)return false;return globalThis.processingProgress?.saveFile?.(e,{href:zipURL,blob:zipBlob,name:'inspector-focus-photo-viewer.zip'},message=>say(message+' Extract the ZIP, then open index.htm.'));};
+$('viewer-download').onclick=e=>{if(!zipBlob||busy)return false;return globalThis.processingProgress?.saveFile?.(e,{href:zipURL,blob:zipBlob,name:'phopod-photo-viewer.zip'},message=>say(message+' Extract the ZIP, then open index.htm.'));};
 $('viewer-clear').onclick=clear;$('viewer-generate').onclick=generate;$('contact-selection').onclick=toContact;
 $('viewer-selection-photo').onchange=()=>{selected=$('viewer-selection-photo').value===''?null:Number($('viewer-selection-photo').value);$('viewer-position').value=ordered().findIndex(p=>p.index===selected)+1;actionState();};
 $('viewer-earlier').onclick=()=>{const list=ordered(),position=list.findIndex(p=>p.index===selected);if(position>0)commit(movePhoto(list,position,position-1));};$('viewer-later').onclick=()=>{const list=ordered(),position=list.findIndex(p=>p.index===selected);if(position>=0&&position<list.length-1)commit(movePhoto(list,position,position+1));};

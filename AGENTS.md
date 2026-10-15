@@ -1,4 +1,4 @@
-# Inspector Focus project instructions
+# Phopod project instructions
 
 Mario requires an SEO review on every deployment. Update SEO when page names, routes, tools, supported formats, behavior or public copy changes. Do not rewrite accurate metadata merely to change it, fabricate reviews, or claim indexing/rankings are guaranteed.
 

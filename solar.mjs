@@ -1,4 +1,4 @@
-import { addTime, getPosition, getTimes } from "./vendor/suncalc.mjs";
+import { addTime, getPosition, getTimes } from "./vendor/suncalc.mjs?v=phopod-20261015";
 addTime(-4, "blueMorningEnd", "blueEveningStart");
 addTime(-8, "blueMorningStart", "blueEveningEnd");
 const formatters = /* @__PURE__ */ new Map();

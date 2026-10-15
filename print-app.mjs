@@ -1,6 +1,6 @@
-import {loadPhotograph} from './image-loader.mjs?v=306513868313';
-import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=e166893abe22';
-import {printSizes,printFit,resolutionGuide,sizeLabel} from './print-engine.mjs?v=f078fe485b31';
+import {loadPhotograph} from './image-loader.mjs?v=phopod-20261015';
+import {setCurrentFile,connectWorkspace} from './workspace.mjs?v=phopod-20261015';
+import {printSizes,printFit,resolutionGuide,sizeLabel} from './print-engine.mjs?v=phopod-20261015';
 let decoder=null;
 const $=id=>document.getElementById(id);let image=null,url=null,selected='8x10',generation=0;
 const say=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};

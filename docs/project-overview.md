@@ -1,6 +1,6 @@
-# Inspector Focus
+# Phopod
 
-Inspector Focus is Mario Romay’s photography utility site at https://inspectorfocus.com. It helps photographers inspect a file, understand a collection, plan a print, frame and resize an image, and create a contact sheet.
+Phopod is Mario Romay’s photography utility site at https://inspectorfocus.com. It helps photographers inspect a file, understand a collection, plan a print, frame and resize an image, and create a contact sheet.
 
 ## Product principles
 
@@ -19,9 +19,9 @@ Inspector Focus is Mario Romay’s photography utility site at https://inspector
 | Print Size | /print-size/ | Preview print framing and estimate pixel density. |
 | Crop / Export | /export/ | Crop, resize, and download one JPEG or a batch ZIP. |
 | Contact Sheet | /contact-sheet/ | Preview and download a multipage PDF. |
-| Robot logo | /about/ | Open the Inspector Focus comic. |
+| Robot logo | /about/ | Open the Phopod comic. |
 
-The homepage is a compact tool directory. The footer link reads **Meet Inspector Focus**. The comic page uses the supplied comic artwork and does not include a “Read the comic text” section.
+The homepage is a compact tool directory. The footer link reads **Meet Phopod**. The comic page uses the supplied comic artwork and does not include a “Read the comic text” section.
 
 ## Combined workflows
 
@@ -31,8 +31,8 @@ Single-image tools can carry the original photograph across deliberate same-tab 
 
 ## Source assets
 
-- The approved Inspector Focus robot logo is the site’s brand asset.
-- The supplied comic is used on the Meet Inspector Focus page.
+- The approved Phopod robot logo is the site’s brand asset.
+- The supplied comic is used on the Meet Phopod page.
 - Preserve the approved assets when refining the interface; do not substitute a generic robot.
 
 The original planning document and artwork should remain alongside these notes as project sources. These notes describe the implemented project snapshot dated October 10, 2026.

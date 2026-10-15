@@ -1,5 +1,5 @@
-import {metrics,entries,label} from './stats-engine.mjs?v=f8f3eb72c2d1';
-import {helveticaWidth,helveticaHex,helveticaText} from './helvetica.mjs?v=c130e049416f';
+import {metrics,entries,label} from './stats-engine.mjs?v=phopod-20261015';
+import {helveticaWidth,helveticaHex,helveticaText} from './helvetica.mjs?v=phopod-20261015';
 const number=n=>n.toLocaleString('en-US');
 const clean=value=>String(value||'').replace(/[\x00-\x1f\x7f]/g,' ').trim().slice(0,80);
 export function weightedMedian(values){
@@ -38,7 +38,7 @@ export function reportPDF(report,{paper='letter',logo=null}={}){
   y=paragraph(metadata,tx,y,W-M-tx,8,false,muted);
   if(report.partial)y=paragraph('Partial collection / completed reads only',tx,y,W-M-tx,8,false,red);
   const rule=y+6;rect(M,rule,C,1.5,red);
-  rect(M,H-45,C,.5,'#cccccc');text('Inspection report by Inspector Focus.',M,H-29,8,false,muted);text('Get yours at inspectorfocus.com',M,H-17,8,false,muted);
+  rect(M,H-45,C,.5,'#cccccc');text('Inspection report by Phopod.',M,H-29,8,false,muted);text('Get yours with Phopod',M,H-17,8,false,muted);
   if(section){text(section,M,rule+31,20,true);return rule+62;}
   return rule+20;
  };
@@ -68,7 +68,7 @@ export function reportPDF(report,{paper='letter',logo=null}={}){
  for(const g of appendix){let y=newPage('EXACT VALUES / '+g.title.toUpperCase());const tableHead=()=>{text(g.note,M,y,8,false,muted);y+=22;text(number(g.known)+' known / '+number(g.missing)+' missing',M,y,8,false,muted);y+=24;text('VALUE',M,y,9,true);text('PHOTOS',W-166,y,9,true);text('% KNOWN',W-104,y,9,true);y+=24;};tableHead();for(const row of g.rows){const lines=wrap(row.value,C-155,9);let pos=0;while(pos<lines.length){if(y+24>H-55){y=newPage('EXACT VALUES / '+g.title.toUpperCase());tableHead();}const capacity=Math.max(1,Math.floor((H-55-y-9)/13)),chunk=lines.slice(pos,pos+capacity),height=Math.max(24,chunk.length*13+9);for(const [i,line] of chunk.entries())text(line,M,y+i*13,9);text(number(row.count),W-166,y,9);text(row.percent.toFixed(1)+'%',W-104,y,9);rect(M,y+height-10,C,.4,'#dddddd');y+=height;pos+=chunk.length;if(pos<lines.length){y=newPage('EXACT VALUES / '+g.title.toUpperCase());tableHead();}}}}
  // Searchable vector lettering and charts; JPEG logo is the only raster artwork.
  const enc=new TextEncoder(),chunks=[],offsets=[0];let length=0;const append=s=>{const b=typeof s==='string'?enc.encode(s):s;chunks.push(b);length+=b.length;};const obj=(id,s)=>{offsets[id]=length;append(`${id} 0 obj\n${s}\nendobj\n`);};
- append('%PDF-1.4\n% Inspector Focus report\n');obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,`<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_,i)=>`${5+i*2} 0 R`).join(' ')}] >>`);obj(3,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');const logoId=5+pages.length*2;
+ append('%PDF-1.4\n% Phopod report\n');obj(1,'<< /Type /Catalog /Pages 2 0 R >>');obj(2,`<< /Type /Pages /Count ${pages.length} /Kids [${pages.map((_,i)=>`${5+i*2} 0 R`).join(' ')}] >>`);obj(3,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>');obj(4,'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');const logoId=5+pages.length*2;
  for(const [i,p] of pages.entries()){page=p;text((i+1)+' / '+pages.length,W-70,H-17,8,false,muted);const id=5+i*2;obj(id,`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> ${logo?`/XObject << /Logo ${logoId} 0 R >>`:''} >> /Contents ${id+1} 0 R /Annots [<< /Type /Annot /Subtype /Link /Rect [${M} 10 ${W-100} 38] /Border [0 0 0] /A << /S /URI /URI (https://inspectorfocus.com/) >> >>] >>`);const content=p.join('\n')+'\n';obj(id+1,`<< /Length ${enc.encode(content).length} >>\nstream\n${content}endstream`);}
  if(logo){offsets[logoId]=length;append(`${logoId} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${logo.width} /Height ${logo.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${logo.bytes.length} >>\nstream\n`);append(logo.bytes);append('\nendstream\nendobj\n');}
  const start=length;append(`xref\n0 ${offsets.length}\n0000000000 65535 f \n`);for(const offset of offsets.slice(1))append(`${String(offset).padStart(10,'0')} 00000 n \n`);append(`trailer\n<< /Size ${offsets.length} /Root 1 0 R >>\nstartxref\n${start}\n%%EOF\n`);return new Blob(chunks,{type:'application/pdf'});

@@ -1,4 +1,4 @@
-import {normalizeLocation,coordinates,normalizePlaces} from './planning.mjs?v=d6e2ff9adce6';
+import {normalizeLocation,coordinates,normalizePlaces} from './planning.mjs?v=phopod-20261015';
 const cache=new Map();
 export async function fetchJSON(url,{signal,ttl=300000,force=false}={}){
  const key=String(url),old=cache.get(key);if(!force&&old&&old.until>Date.now())return old.data;

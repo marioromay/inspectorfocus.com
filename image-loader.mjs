@@ -1,4 +1,4 @@
-import {imageFormat} from './resize-engine.mjs?v=36ad5239d887';
+import {imageFormat} from './resize-engine.mjs?v=phopod-20261015';
 function decodeURL(url){return new Promise((resolve,reject)=>{const image=new Image();image.onload=()=>resolve(image);image.onerror=()=>reject(Error('This browser cannot decode this photograph.'));image.src=url;if(typeof image.decode==='function')image.decode().then(()=>resolve(image),reject);});}
 export async function loadPhotograph(file,{signal}={}){
  if(file.size>50*1024*1024)throw Error('Choose an image up to 50 MB.');
